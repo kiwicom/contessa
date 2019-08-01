@@ -1,3 +1,3 @@
-# contessa
+# Contessa
 
 Data-quality framework
