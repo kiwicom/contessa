@@ -1,6 +1,7 @@
 import pandas as pd
 
 from contessa.base_rules import Rule
+from contessa.db import Connector
 from contessa.executor import get_executor, SqlExecutor
 
 
@@ -55,15 +56,14 @@ class SqlRule(Rule):
         where_time_filter = e.compose_where_filter(self)
         return f"{self.format_sql()} {where_time_filter}"
 
-    def apply(self, hook):
+    def apply(self, conn: Connector):
         """
-        Execute a formatted sql using hook. Check if it returns list of booleans that is needed
+        Execute a formatted sql. Check if it returns list of booleans that is needed
         to do a quality check. If yes, return pd.Series.
-        :param hook: DbApiHook, mostly PostgresHook
         :return: pd.Series
         """
         sql = self.sql_with_time_filter
-        results = hook.get_records(sql)
+        results = conn.get_records(sql)
         is_list_of_bool = all(
             (len(r) == 1 and isinstance(r[0], (bool, type(None))) for r in results)
         )

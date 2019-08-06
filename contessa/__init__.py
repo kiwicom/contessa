@@ -7,7 +7,7 @@ check on load in temporary table.
 """
 
 # Start ignoring PyUnusedCodeBear
-from .operator import DataQualityOperator
+from .runner import ContessaRunner
 from .rules import EQ, GT, GTE, LT, LTE, NOT, NOT_COLUMN, NOT_NULL, SQL
 
 # Stop ignoring

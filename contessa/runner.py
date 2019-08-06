@@ -1,81 +1,60 @@
 import logging
+from typing import List
 
 import sqlalchemy
+from datetime import datetime
 
+from contessa.base_rules import Rule
+from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
 from contessa.models import get_default_qc_class
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 from contessa.session import init_session, make_session
 
-from airflow.hooks.postgres_hook import PostgresHook
-from airflow.models import BaseOperator
 
-
-class DataQualityOperator(BaseOperator):
+class ContessaRunner:
     """
-    Run Data Quality check against a temporary table before load to public/raw table.
-    1. Load rules by user
-    2. Normalize them to be 1 rule == 1 check over 1 column and 1 time_filter
-    3. Init sqlalchemy session and executors and quality check class.
-    4. Create table of quality check if dont exists.
-    5. Run all rules and get stats from them (number failed/passed etc., see models.QualityCheck)
-    6. Save data
-
-    :param task_id: str
-    :param conn_id: str
-    :param rules: list of dicts, supports various shortcuts, see RuleNormalizer
-    :param table_name: str, name of the table we are trying to load.
-           NOTE: not temporary one, name of tmp will be constructed in specific airflow task
-    :param schema_name: str, name of schema of temporary table
+    todo - rewrite comments
     """
 
-    special_qc_map = {"dummy": None}
-    ui_color = "#f1f515"
+    def __init__(self, conn_uri_or_engine, special_qc_map=None):
+        self.conn_uri_or_engine = conn_uri_or_engine
+        self.conn = Connector(conn_uri_or_engine)
 
-    def __init__(
+        # todo - allow cfg
+        self.special_qc_map = special_qc_map or {}
+
+    def ts_nodash(self, dt: datetime):
+        return dt.strftime("%Y%m%dT%H:%M:%S")
+
+    def run(
         self,
-        task_id,
-        conn_id,
-        rules,
-        table_name,
-        schema_name="temporary",
-        *args,
-        **kwargs,
+        raw_rules: List[Rule],
+        table_name: str,
+        schema_name: str,
+        task_time: datetime = None,
     ):
-        super().__init__(task_id=task_id, *args, **kwargs)
-        self.conn_id = conn_id
+        normalized_rules = RuleNormalizer().normalize(raw_rules)
 
-        # we are doing dq check on temporary tables, can be overridden, e.g. in tests
-        self.schema_name = schema_name
-        self.table_name = table_name
-        self._rules_def = rules
-        self.normalized_rules = RuleNormalizer().normalize(rules)
+        # todo - get rid of tmp_table..
+        tmp_table_name = f"{table_name}_{self.ts_nodash(task_time)}"
 
-    def execute(self, context):
-        hook = PostgresHook(self.conn_id)
-        tmp_table_name = f"{self.table_name}_{context['ts_nodash']}"
-        engine = hook.get_sqlalchemy_engine()
-        init_session(engine)
-        refresh_executors(
-            self.schema_name, self.table_name, tmp_table_name, hook, context
-        )
-        quality_check_class = self.get_quality_check_class()
-        self.ensure_table(quality_check_class, engine)
+        # todo - refactor init_session & make_session - move to connector
+        init_session(self.conn.engine)
+        refresh_executors(schema_name, table_name, tmp_table_name, self.conn)
+        quality_check_class = self.get_quality_check_class(table_name)
+        self.ensure_table(quality_check_class)
 
-        rules = self.build_rules()
-        objs = self.do_quality_check(quality_check_class, rules, context)
+        rules = self.build_rules(normalized_rules)
+        objs = self.do_quality_check(quality_check_class, rules, task_time)
 
         self.insert(objs)
 
-    def do_quality_check(self, dq_cls, rules, context):
+    def do_quality_check(self, dq_cls, rules: List[Rule], task_time: datetime = None):
         """
         Run quality check for all rules. Use `qc_cls` to construct objects that will be inserted
         afterwards.
-        :param dq_cls: QualityCheck
-        :param rules: list of Rule cls
-        :param context: dict, airflow context
-        :return: list of QualityCheck objs
         """
         ret = []
         for rule in rules:
@@ -83,7 +62,7 @@ class DataQualityOperator(BaseOperator):
             logging.info(f"Executing rule `{rule}`.")
             results = e.execute(rule)
             obj = dq_cls()
-            obj.init_row(rule, results, context)
+            obj.init_row(rule, results, task_time)
             ret.append(obj)
         return ret
 
@@ -107,26 +86,26 @@ class DataQualityOperator(BaseOperator):
         finally:
             session.close()
 
-    def ensure_table(self, qc_cls, e):
+    def ensure_table(self, qc_cls):
         """
         Create table for QualityCheck class if it doesn't exists. E.g. quality_check_
         """
         try:
-            qc_cls.__table__.create(bind=e)
+            qc_cls.__table__.create(bind=self.conn.engine)
             logging.info(f"Created table {qc_cls.__tablename__}.")
         except sqlalchemy.exc.ProgrammingError:
             logging.info(
                 f"Table {qc_cls.__tablename__} already exists. Skipping creation."
             )
 
-    def build_rules(self):
+    def build_rules(self, normalized_rules):
         """
         Construct rules classes from user definition that are dicts.
         Raises if there are bad arguments for a certain rule.
         :return: list of Rule objects
         """
         ret = []
-        for rule_def in self.normalized_rules:
+        for rule_def in normalized_rules:
             rule_cls = self.pick_rule_cls(rule_def)
             try:
                 r = rule_cls(**rule_def)
@@ -145,7 +124,7 @@ class DataQualityOperator(BaseOperator):
         """
         return get_rule_cls(rule_def["name"])
 
-    def get_quality_check_class(self):
+    def get_quality_check_class(self, table_name):
         """
         QualityCheck can be different, e.g. `special_table` has specific quality_check.
         Or kind of generic one that computes number of passed/failed objects etc.
@@ -153,12 +132,12 @@ class DataQualityOperator(BaseOperator):
         :return: QualityCheck cls
         """
         special_checks = self.special_qc_map.keys()
-        if self.table_name in special_checks:
-            quality_check_class = self.special_qc_map[self.table_name]
+        if table_name in special_checks:
+            quality_check_class = self.special_qc_map[table_name]
             logging.info(
                 f"Using {quality_check_class.__name__} as quality check class."
             )
         else:
-            quality_check_class = get_default_qc_class(self.table_name)
+            quality_check_class = get_default_qc_class(table_name)
             logging.info("Using default QualityCheck class.")
         return quality_check_class
