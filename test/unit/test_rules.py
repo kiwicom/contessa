@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from datetime import datetime
 
 from contessa.executor import refresh_executors
 from contessa.rules import (
@@ -37,8 +38,8 @@ def df():
         (EqRule("eq", "value", 4), [False, True, False, False, True]),
     ],
 )
-def test_one_column_rule_sql(rule, expected, hook):
-    hook.run(
+def test_one_column_rule_sql(rule, expected, conn):
+    conn.execute(
         """
             drop table if exists tmp_table;
 
@@ -50,9 +51,9 @@ def test_one_column_rule_sql(rule, expected, hook):
             values (1), (4), (5), (NULL), (4)
         """
     )
-    refresh_executors("", "", "tmp_table", hook, {})
+    refresh_executors("", "tmp_table", conn)
 
-    results = rule.apply(hook)
+    results = rule.apply(conn)
     expected = pd.Series(expected, name=rule.column)
     assert list(expected) == list(results)
 
@@ -66,8 +67,8 @@ def test_one_column_rule_sql(rule, expected, hook):
         (NotColumnRule("not_column", "value2", "value3"), [True, False, False]),
     ],
 )
-def test_not_column_rule(rule, expected, hook):
-    hook.run(
+def test_not_column_rule(rule, expected, conn):
+    conn.execute(
         """
         drop table if exists tmp_table;
 
@@ -82,15 +83,15 @@ def test_not_column_rule(rule, expected, hook):
         values (1, 2, 1, 1), (1, 1, 1, NULL), (1, 1, 1, 1)
     """
     )
-    refresh_executors("", "", "tmp_table", hook, {})
+    refresh_executors("", "tmp_table", conn)
 
-    results = rule.apply(hook)
+    results = rule.apply(conn)
     expected = pd.Series(expected, name=rule.column)
     assert list(expected) == list(results)
 
 
-def test_sql_apply(hook):
-    hook.run(
+def test_sql_apply(conn):
+    conn.execute(
         """
         drop table if exists tmp_table;
 
@@ -103,7 +104,7 @@ def test_sql_apply(hook):
         values ('bts', 'abc'), ('aaa', NULL)
     """
     )
-    refresh_executors("", "", "tmp_table", hook, {})
+    refresh_executors("", "tmp_table", conn)
 
     sql = """
         select
@@ -111,14 +112,14 @@ def test_sql_apply(hook):
         from {{tmp_table_name}}
     """
     rule = CustomSqlRule("sql_test", sql, "example description")
-    results = rule.apply(hook)
+    results = rule.apply(conn)
     expected = pd.Series([False, True])
     assert list(expected) == list(results)
-    hook.run("""DROP TABLE tmp_table;""")
+    conn.execute("""DROP TABLE tmp_table;""")
 
 
-def test_sql_apply_destination(hook):
-    hook.run(
+def test_sql_apply_destination(conn):
+    conn.execute(
         """
         drop table if exists dst_table;
 
@@ -132,16 +133,16 @@ def test_sql_apply_destination(hook):
         values ('bts', 'abc', '2019-07-31T11:00:00'), ('aaa', NULL, '2019-07-31T11:00:00'), ('aaa', NULL, '2019-07-31T12:00:00')
     """
     )
-    refresh_executors("", "dst_table", "", hook, {"ds_nodash": "2019-07-31T11:00:00"})
+    refresh_executors("", "dst_table", conn, datetime(2019, 7, 31, 11, 0, 0))
 
     sql = """
         select
         src = 'aaa'
         from {{dst_table_name}}
-        where created between timestamptz '{{ds_nodash}}' and timestamptz '{{ds_nodash}}' + interval '60 seconds'
+        where created between timestamptz '{{task_time}}' and timestamptz '{{task_time}}' + interval '60 seconds'
     """
     rule = CustomSqlRule("sql_test", sql, "example description")
-    results = rule.apply(hook)
+    results = rule.apply(conn)
     expected = pd.Series([False, True])
     assert list(expected) == list(results)
-    hook.run("""DROP TABLE dst_table;""")
+    conn.execute("""DROP TABLE dst_table;""")

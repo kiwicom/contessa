@@ -1,27 +1,18 @@
 import pytest
 
-from contessa import DataQualityOperator
-from contessa.models import BookingQualityCheck
+from contessa import ContessaRunner
+from contessa.models import QualityCheck
 from contessa.rules import GtRule, NotNullRule
+from test.conftest import TEST_DB_URI
 
 
-@pytest.fixture(scope="module")
-def dq(dag):
+def test_build_rules(contessa):
     rules = [
         {"name": "not_null", "columns": ["a", "b", "c"], "time_filter": "created_at"}
     ]
-    dq = DataQualityOperator(
-        task_id="dq",
-        conn_id="test_db",
-        dag=dag,
-        rules=rules,
-        table_name="booking_all_v2",
-    )
-    return dq
-
-
-def test_build_rules(dq):
-    rules = dq.build_rules()
+    contessa = ContessaRunner(TEST_DB_URI)
+    normalized_rules = contessa.normalize_rules(rules)
+    rules = contessa.build_rules(normalized_rules)
     expected = [
         NotNullRule("not_null", "a", time_filter="created_at"),
         NotNullRule("not_null", "b", time_filter="created_at"),
@@ -37,20 +28,18 @@ def test_build_rules(dq):
     "rule_def, rule_cls",
     [({"name": "not_null"}, NotNullRule), ({"name": "gt"}, GtRule)],
 )
-def test_pick_rule(rule_def, rule_cls, dq):
-    assert dq.pick_rule_cls(rule_def) == rule_cls
+def test_pick_rule(rule_def, rule_cls):
+    contessa = ContessaRunner(TEST_DB_URI)
+    assert contessa.pick_rule_cls(rule_def) == rule_cls
 
 
-def test_not_known_rule(dq):
+def test_not_known_rule():
+    contessa = ContessaRunner(TEST_DB_URI)
     msg = "I dont know this kind of rule .*"
     with pytest.raises(ValueError, match=msg):
-        dq.pick_rule_cls({"name": "aa"})
-
-
-def test_get_quality_check_class(dq):
-    assert dq.get_quality_check_class() == BookingQualityCheck
+        contessa.pick_rule_cls({"name": "aa"})
 
 
 def test_generic_typ_qc_class(dq):
-    dq.table_name = "mytable"
-    assert dq.get_quality_check_class().__name__ == "MytableQualityCheck"
+    contessa = ContessaRunner(TEST_DB_URI)
+    assert contessa.get_quality_check_class("mytable").__name__ == "MytableQualityCheck"

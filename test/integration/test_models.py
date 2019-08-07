@@ -1,18 +1,21 @@
+import datetime
+
+from contessa.db import Connector
 from test.conftest import FakedDatetime
 
 from contessa.models import get_default_qc_class
 
 
-# Start ignoring RadonBear
-def test_quality_check_init_row(rule, results, context, hook):
+def test_quality_check_init_row(rule, results, conn: Connector):
     qc = get_default_qc_class("booking")
     assert qc.__tablename__ == "quality_check_booking"
+    t = datetime.datetime(2019, 8, 10, 10, 0, 0)
 
-    qc.__table__.create(hook.get_sqlalchemy_engine())
+    qc.__table__.create(conn.engine)
     instance = qc()
-    instance.init_row(rule, results, context)
+    instance.init_row(rule, results, conn, task_time=t)
 
-    assert instance.task_ts == context["ts"]
+    assert instance.task_ts == t
     assert instance.attribute == "src"
     assert instance.rule_name == "not_null"
     assert instance.rule_description == "True when data is null."
@@ -27,15 +30,12 @@ def test_quality_check_init_row(rule, results, context, hook):
     assert instance.status == "invalid"
 
 
-# Stop ignoring
-
-
-def test_set_medians(hook, monkeypatch):
+def test_set_medians(conn: Connector, monkeypatch):
     qc = get_default_qc_class("t")
-    qc.__table__.create(hook.get_sqlalchemy_engine())
+    qc.__table__.create(conn.engine)
     instance = qc()
 
-    hook.run(
+    conn.execute(
         """
         insert into data_quality.quality_check_t(failed, passed, task_ts)
         values
@@ -48,7 +48,7 @@ def test_set_medians(hook, monkeypatch):
     )
 
     monkeypatch.setattr("contessa.models.datetime", FakedDatetime)
-    instance.set_medains()
+    instance.set_medians(conn)
 
     assert instance.median_30_day_failed == 10.5
     assert instance.median_30_day_passed == 155

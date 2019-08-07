@@ -19,13 +19,16 @@ class Executor(metaclass=abc.ABCMeta):
         self,
         schema_name: str,
         dst_table_name: str,
-        tmp_table_name: str,
         conn: Connector,
+        task_time: datetime = None,
     ):
         self.conn = conn
         self.schema_name = schema_name
-        self.tmp_table_name = tmp_table_name
         self.dst_table_name = dst_table_name
+
+        # todo - if None - provide default, should it be now() ?
+        self.task_time = task_time
+
         self._raw_df = None
 
     def matched_cols(self, cols):
@@ -33,12 +36,27 @@ class Executor(metaclass=abc.ABCMeta):
             if col in self.date_columns:
                 yield col
 
+    def context(self):
+        return {
+            "tmp_table_name": self.tmp_table,
+            "dst_table_name": self.dst_table,
+            "task_time": self.ts_nodash(),
+        }
+
+    def ts_nodash(self):
+        if not self.task_time:
+            return ""
+        return self.task_time.strftime("%Y%m%dT%H%M%S")
+
+    # todo - this should be solely constructed in Airflow as it is
+    # todo - specific to kiwi and airflow
     @property
     def tmp_table(self):
+        tmp_table_name = f"{self.dst_table_name}_{self.ts_nodash()}"
         return (
-            f"{self.schema_name}.{self.tmp_table_name}"
+            f"{self.schema_name}.{tmp_table_name}"
             if self.schema_name
-            else self.tmp_table_name
+            else tmp_table_name
         )
 
     @property
@@ -135,7 +153,7 @@ executors = None
 
 
 def refresh_executors(
-    schema_name: str, dst_table_name: str, tmp_table_name: str, conn: Connector
+    schema_name: str, dst_table_name: str, conn: Connector, task_time=None
 ):
     """
     Use this to re-init the executor classes that are used to execute rules. To have right
@@ -147,10 +165,8 @@ def refresh_executors(
     """
     global executors
     executors = {
-        PandasExecutor: PandasExecutor(
-            schema_name, dst_table_name, tmp_table_name, conn
-        ),
-        SqlExecutor: SqlExecutor(schema_name, dst_table_name, tmp_table_name, conn),
+        PandasExecutor: PandasExecutor(schema_name, dst_table_name, conn, task_time),
+        SqlExecutor: SqlExecutor(schema_name, dst_table_name, conn, task_time),
     }
     logging.info("Successfully inited PandasExecutor and SqlExecutor.")
 

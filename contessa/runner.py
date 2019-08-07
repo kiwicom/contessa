@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Dict
 
 import sqlalchemy
 from datetime import datetime
@@ -10,7 +10,6 @@ from contessa.executor import get_executor, refresh_executors
 from contessa.models import get_default_qc_class
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
-from contessa.session import init_session, make_session
 
 
 class ContessaRunner:
@@ -25,24 +24,15 @@ class ContessaRunner:
         # todo - allow cfg
         self.special_qc_map = special_qc_map or {}
 
-    def ts_nodash(self, dt: datetime):
-        return dt.strftime("%Y%m%dT%H:%M:%S")
-
     def run(
         self,
-        raw_rules: List[Rule],
+        raw_rules: List[Dict[str, str]],
         table_name: str,
         schema_name: str,
         task_time: datetime = None,
     ):
-        normalized_rules = RuleNormalizer().normalize(raw_rules)
-
-        # todo - get rid of tmp_table..
-        tmp_table_name = f"{table_name}_{self.ts_nodash(task_time)}"
-
-        # todo - refactor init_session & make_session - move to connector
-        init_session(self.conn.engine)
-        refresh_executors(schema_name, table_name, tmp_table_name, self.conn)
+        normalized_rules = self.normalize_rules(raw_rules)
+        refresh_executors(schema_name, table_name, self.conn, task_time)
         quality_check_class = self.get_quality_check_class(table_name)
         self.ensure_table(quality_check_class)
 
@@ -50,6 +40,9 @@ class ContessaRunner:
         objs = self.do_quality_check(quality_check_class, rules, task_time)
 
         self.insert(objs)
+
+    def normalize_rules(self, raw_rules):
+        return RuleNormalizer().normalize(raw_rules)
 
     def do_quality_check(self, dq_cls, rules: List[Rule], task_time: datetime = None):
         """
@@ -62,18 +55,16 @@ class ContessaRunner:
             logging.info(f"Executing rule `{rule}`.")
             results = e.execute(rule)
             obj = dq_cls()
-            obj.init_row(rule, results, task_time)
+            obj.init_row(rule, results, self.conn, task_time)
             ret.append(obj)
         return ret
 
     def insert(self, objs):
         """
         Insert QualityCheck objects using sqlalchemy. If there is integrity error, skip it.
-        :param objs: list
-        :return:
         """
         logging.info(f"Inserting {len(objs)} results.")
-        session = make_session()
+        session = self.conn.make_session()
         try:
             session.add_all(objs)
             session.commit()
