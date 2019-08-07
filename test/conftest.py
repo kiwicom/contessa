@@ -1,12 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
+import os
 import pandas as pd
 import pytest
 
 from contessa.rules import NotNullRule
-from contessa.session import init_session
 
-from kw_postgres_hook import KwPostgresHook
+from contessa.db import Connector
+
+TEST_DB_URI = os.environ.get("TEST_DB_URI")
+
+if not TEST_DB_URI:
+    raise ValueError("To run integration test set `TEST_DB_URI` env var.")
 
 
 class FakedDatetime(datetime):
@@ -30,16 +35,17 @@ def results():
 
 
 @pytest.fixture()
-def hook():
-    h = KwPostgresHook("test_db")
-    init_session(h.get_sqlalchemy_engine())
+def conn():
+    h = Connector(TEST_DB_URI)
 
     schemas = ["tmp", "temporary", "data_quality", "raw"]
     create_queries = [f"create schema if not exists {s}" for s in schemas]
     drop_queries = [f"drop schema if exists {s} cascade" for s in schemas]
 
-    h.run(create_queries)
+    for c in create_queries:
+        h.execute(c)
 
     yield h
 
-    h.run(drop_queries)
+    for d in drop_queries:
+        h.execute(d)

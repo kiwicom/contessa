@@ -17,7 +17,7 @@ from sqlalchemy.ext.declarative import (
 )
 
 from contessa.base_rules import Rule
-from contessa.session import make_session
+from contessa.db import Connector
 
 DQBase = declarative_base(metadata=MetaData(schema="data_quality"))
 
@@ -71,7 +71,13 @@ class QualityCheck(AbstractConcreteBase, DQBase):
             ),
         )
 
-    def init_row(self, rule: Rule, results: pd.Series, task_time: datetime = None):
+    def init_row(
+        self,
+        rule: Rule,
+        results: pd.Series,
+        conn: Connector,
+        task_time: datetime = None,
+    ):
         """
         Count metrics we want to measure using pd.Series api and set them to quality check object.
         """
@@ -87,7 +93,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         self.failed = results[results == False].shape[0]
         self.passed = results[results == True].shape[0]
 
-        self.set_medians()
+        self.set_medians(conn)
 
         self.time_filter = rule.time_filter
         self.failed_percentage = self._perc(self.failed, self.total_records)
@@ -102,16 +108,15 @@ class QualityCheck(AbstractConcreteBase, DQBase):
             pass
         return res
 
-    def set_medians(self, days=30):
+    def set_medians(self, conn: Connector, days=30):
         """
         Calculate median of passed/failed quality checks from last 30 days.
-        :param days: int
         """
         now = datetime.today().date()
         past = now - timedelta(days=days)
         cls = self.__class__
 
-        session = make_session()
+        session = conn.make_session()
         checks = (
             session.query(cls.failed, cls.passed)
             .filter(and_(cls.task_ts <= str(now), cls.task_ts >= str(past)))

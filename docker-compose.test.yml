@@ -1,0 +1,19 @@
+version: '2'
+services:
+
+    postgres:
+        image: postgres
+        environment:
+          - POSTGRES_DB=test_db
+
+    app-test:
+        image: contessa
+        build: .
+        environment:
+          - TEST_DB_URI=postgresql+psycopg2://postgres:@postgres:5432/test_db
+        command: pytest test
+        volumes:
+          - ./test:/app/test
+          - ./contessa:/app/contessa
+        depends_on:
+          - postgres

@@ -18,9 +18,7 @@ class SqlRule(Rule):
 
     def get_sql_parameters(self):
         e = get_executor(self.__class__)
-        params = {"tmp_table_name": e.tmp_table, "dst_table_name": e.dst_table}
-        params.update(e.context)
-        return params
+        return e.context()
 
     @property
     def sql(self):
@@ -63,7 +61,10 @@ class SqlRule(Rule):
         :return: pd.Series
         """
         sql = self.sql_with_time_filter
-        results = conn.get_records(sql)
+        results = [
+            r for r in conn.get_records(sql)
+        ]  # returns generator, so get it to memory
+
         is_list_of_bool = all(
             (len(r) == 1 and isinstance(r[0], (bool, type(None))) for r in results)
         )

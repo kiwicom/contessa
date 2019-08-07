@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Union, List
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Engine
 import pandas.io.sql as pdsql
+from sqlalchemy.orm import sessionmaker
 
 
 class Connector:
@@ -20,6 +21,10 @@ class Connector:
             raise ValueError(
                 f"You can only pass conn str or sqlalchemy `Engine` to `{cls_name}`."
             )
+        self.Session = sessionmaker(bind=self.engine)
+
+    def make_session(self):
+        return self.Session()
 
     def get_records(self, sql, params=None):
         """
@@ -27,7 +32,7 @@ class Connector:
         """
         return self.execute(sql, params)
 
-    def execute(self, sql, params=None):
+    def execute(self, sql: [List, str], params=None):
         """
         Execute sql, if there are some results, return them.
         """
