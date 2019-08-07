@@ -4,6 +4,8 @@ import logging
 
 import pandas as pd
 
+from contessa.db import Connector
+
 
 class Executor(metaclass=abc.ABCMeta):
     """
@@ -13,13 +15,18 @@ class Executor(metaclass=abc.ABCMeta):
 
     date_columns = ("created_at", "updated_at", "confirmed_at")
 
-    def __init__(self, schema_name, dst_table_name, tmp_table_name, hook, context):
+    def __init__(
+        self,
+        schema_name: str,
+        dst_table_name: str,
+        tmp_table_name: str,
+        conn: Connector,
+    ):
+        self.conn = conn
         self.schema_name = schema_name
         self.tmp_table_name = tmp_table_name
         self.dst_table_name = dst_table_name
-        self.hook = hook
         self._raw_df = None
-        self.context = context
 
     def matched_cols(self, cols):
         for col in cols:
@@ -51,7 +58,7 @@ class Executor(metaclass=abc.ABCMeta):
         """
         if self._raw_df is not None:
             return self._raw_df
-        self._raw_df = self.hook.get_pandas_df(f"select * from {self.tmp_table}")
+        self._raw_df = self.conn.get_pandas_df(f"select * from {self.tmp_table}")
 
         # cast datetime cols to python datetime
         # pandas issue...
@@ -120,14 +127,16 @@ class PandasExecutor(Executor):
 
 class SqlExecutor(Executor):
     def compose_kwargs(self, rule):
-        return {"hook": self.hook}
+        return {"conn": self.conn}
 
 
 # singleton of executors
 executors = None
 
 
-def refresh_executors(schema_name, dst_table_name, tmp_table_name, hook, context):
+def refresh_executors(
+    schema_name: str, dst_table_name: str, tmp_table_name: str, conn: Connector
+):
     """
     Use this to re-init the executor classes that are used to execute rules. To have right
     data from new table in Executor class.
@@ -135,20 +144,13 @@ def refresh_executors(schema_name, dst_table_name, tmp_table_name, hook, context
     NOTE: This would fail if it 2 quality checks would run in 2 threads or async manner.
     Should exists a pool of executors that are mapped using schema and table_names.
 
-    :param schema_name: str
-    :param dst_table_name: str
-    :param tmp_table_name: str
-    :param hook: PostgresHook
-    :param context: dict
     """
     global executors
     executors = {
         PandasExecutor: PandasExecutor(
-            schema_name, dst_table_name, tmp_table_name, hook, context
+            schema_name, dst_table_name, tmp_table_name, conn
         ),
-        SqlExecutor: SqlExecutor(
-            schema_name, dst_table_name, tmp_table_name, hook, context
-        ),
+        SqlExecutor: SqlExecutor(schema_name, dst_table_name, tmp_table_name, conn),
     }
     logging.info("Successfully inited PandasExecutor and SqlExecutor.")
 

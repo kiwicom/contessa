@@ -5,7 +5,7 @@ class Rule(metaclass=abc.ABCMeta):
     """
     Representation of one rule.
     Method apply define how it will be evaluated using the executor that will inject all the
-    needed attributes to apply it (df, hook etc.).
+    needed attributes to apply it (df, connector etc.).
 
     Attributes:
         executor_cls    Executor, indication of which executor class can execute this rule

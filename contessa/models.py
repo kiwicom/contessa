@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from statistics import median
 
+import pandas as pd
 from sqlalchemy import and_, Column, DateTime, MetaData, text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import (
     BIGINT,
@@ -15,7 +16,7 @@ from sqlalchemy.ext.declarative import (
     declared_attr,
 )
 
-from contessa.executor import get_executor
+from contessa.base_rules import Rule
 from contessa.session import make_session
 
 DQBase = declarative_base(metadata=MetaData(schema="data_quality"))
@@ -70,17 +71,14 @@ class QualityCheck(AbstractConcreteBase, DQBase):
             ),
         )
 
-    def init_row(self, rule, results, context):
+    def init_row(self, rule: Rule, results: pd.Series, task_time: datetime = None):
         """
         Count metrics we want to measure using pd.Series api and set them to quality check object.
-        :param rule: Rule instance
-        :param results: pd.Series
-        :param context: airflow task context dict
         """
         if results.isnull().any():
             raise ValueError("In results of rule.apply can't be any Null values.")
 
-        self.task_ts = context["ts"]
+        self.task_ts = task_time or datetime.now()
         self.attribute = rule.attribute
         self.rule_name = rule.name
         self.rule_description = rule.description
@@ -89,7 +87,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         self.failed = results[results == False].shape[0]
         self.passed = results[results == True].shape[0]
 
-        self.set_medains()
+        self.set_medians()
 
         self.time_filter = rule.time_filter
         self.failed_percentage = self._perc(self.failed, self.total_records)
@@ -104,7 +102,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
             pass
         return res
 
-    def set_medains(self, days=30):
+    def set_medians(self, days=30):
         """
         Calculate median of passed/failed quality checks from last 30 days.
         :param days: int
@@ -155,4 +153,3 @@ def get_default_qc_class(table):
     }
     cls = type(f"{table.capitalize()}QualityCheck", (QualityCheck,), attributedict)
     return cls
-
