@@ -20,9 +20,13 @@ include:
   - 'https://ci-files.skypicker.com/templates/build/black.yml'
 
 test:pytest:
-  image: python:3.6
+  image: python:3.7
+  services:
+    - postgres
+  variables:
+    TEST_DB_URI: postgresql+psycopg2://postgres:@postgres:5432/test_db
+    POSTGRES_DB: test_db
   before_script:
-    - pip install -r requirements-test.txt
+    - pip install -r requirements.txt pytest
   script:
-    - pytest
-
+    - pytest $CI_PROJECT_DIR/test/
