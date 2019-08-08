@@ -109,7 +109,7 @@ def test_sql_apply(conn):
     sql = """
         select
         src = 'aaa'
-        from {{tmp_table_name}}
+        from {{ table_name }}
     """
     rule = CustomSqlRule("sql_test", sql, "example description")
     results = rule.apply(conn)
@@ -138,7 +138,7 @@ def test_sql_apply_destination(conn):
     sql = """
         select
         src = 'aaa'
-        from {{dst_table_name}}
+        from {{ table_name }}
         where created between timestamptz '{{task_time}}' and timestamptz '{{task_time}}' + interval '60 seconds'
     """
     rule = CustomSqlRule("sql_test", sql, "example description")

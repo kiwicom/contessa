@@ -9,9 +9,9 @@ services:
     app-test:
         image: contessa
         build: .
+        command: tail -f /dev/null
         environment:
           - TEST_DB_URI=postgresql+psycopg2://postgres:@postgres:5432/test_db
-        command: pytest test
         volumes:
           - ./test:/app/test
           - ./contessa:/app/contessa

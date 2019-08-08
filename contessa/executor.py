@@ -24,6 +24,8 @@ class Executor(metaclass=abc.ABCMeta):
     ):
         self.conn = conn
         self.schema_name = schema_name
+
+        # todo - rename
         self.dst_table_name = dst_table_name
 
         # todo - if None - provide default, should it be now() ?
@@ -39,7 +41,7 @@ class Executor(metaclass=abc.ABCMeta):
     def context(self):
         return {
             "tmp_table_name": self.tmp_table,
-            "dst_table_name": self.dst_table,
+            "table_name": self.table_name,
             "task_time": self.ts_nodash(),
         }
 
@@ -60,7 +62,7 @@ class Executor(metaclass=abc.ABCMeta):
         )
 
     @property
-    def dst_table(self):
+    def table_name(self):
         return (
             f"{self.schema_name}.{self.dst_table_name}"
             if self.schema_name
@@ -76,7 +78,7 @@ class Executor(metaclass=abc.ABCMeta):
         """
         if self._raw_df is not None:
             return self._raw_df
-        self._raw_df = self.conn.get_pandas_df(f"select * from {self.tmp_table}")
+        self._raw_df = self.conn.get_pandas_df(f"select * from {self.table_name}")
 
         # cast datetime cols to python datetime
         # pandas issue...

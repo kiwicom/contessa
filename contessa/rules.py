@@ -24,8 +24,7 @@ class SqlRule(Rule):
     def sql(self):
         """
         SQL query to perform on column.
-        Can consist parameters: {{dst_table_name}}, {{tmp_table_name}} and {{target_column}}.
-        :return:
+        Can use context from Executor.
         """
         return f""
 
@@ -113,7 +112,7 @@ class NotNullRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} IS NOT NULL FROM {{tmp_table_name}}
+            SELECT {{target_column}} IS NOT NULL FROM {{table_name}}
         """
 
 
@@ -127,7 +126,7 @@ class GtRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} > {self.value} FROM {{tmp_table_name}}
+            SELECT {{target_column}} > {self.value} FROM {{table_name}}
         """
 
 
@@ -141,7 +140,7 @@ class GteRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} >= {self.value} FROM {{tmp_table_name}}
+            SELECT {{target_column}} >= {self.value} FROM {{table_name}}
         """
 
 
@@ -156,7 +155,7 @@ class NotRule(OneColumnRuleSQL):
     def sql(self):
         return f"""
             SELECT {{target_column}} is distinct from {self.value}
-            FROM {{tmp_table_name}}
+            FROM {{table_name}}
         """
 
 
@@ -173,7 +172,7 @@ class NotColumnRule(OneColumnRuleSQL):
     def sql(self):
         return f"""
             SELECT {{target_column}} is distinct from {self.column2}
-            FROM {{tmp_table_name}}
+            FROM {{table_name}}
         """
 
 
@@ -187,7 +186,7 @@ class LtRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} < {self.value} FROM {{tmp_table_name}}
+            SELECT {{target_column}} < {self.value} FROM {{table_name}}
         """
 
 
@@ -201,7 +200,7 @@ class LteRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} <= {self.value} FROM {{tmp_table_name}}
+            SELECT {{target_column}} <= {self.value} FROM {{table_name}}
         """
 
 
@@ -215,7 +214,7 @@ class EqRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} IS NOT DISTINCT FROM {self.value} FROM {{tmp_table_name}}
+            SELECT {{target_column}} IS NOT DISTINCT FROM {self.value} FROM {{table_name}}
         """
 
 
