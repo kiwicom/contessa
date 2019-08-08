@@ -1,6 +1,7 @@
 from contessa.db import Connector
 from contessa.models import DQBase
-from test.conftest import FakedDatetime, TEST_DB_URI
+from test.conftest import FakedDatetime
+from test.integration.conftest import TEST_DB_URI
 import unittest
 from unittest import mock
 
@@ -133,7 +134,7 @@ class TestDataQualityOperator(unittest.TestCase):
         sql = """
             SELECT
               CASE WHEN src = 'BTS' and dst is null THEN false ELSE true END as res
-            from {{ dst_table_name }}
+            from {{ table_name }}
             where created_at between timestamptz '{{task_time}}' and timestamptz '{{task_time}}' + interval '1 hour'
         """
         rules = [
