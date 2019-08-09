@@ -1,10 +1,12 @@
 import abc
 from datetime import datetime, timedelta
 import logging
+from typing import Optional, Dict
 
 import pandas as pd
 
 from contessa.db import Connector
+from contessa.models import Table
 
 
 class Executor(metaclass=abc.ABCMeta):
@@ -16,21 +18,12 @@ class Executor(metaclass=abc.ABCMeta):
     date_columns = ("created_at", "updated_at", "confirmed_at")
 
     def __init__(
-        self,
-        schema_name: str,
-        dst_table_name: str,
-        conn: Connector,
-        task_time: datetime = None,
+        self, check_table: Table, conn: Connector, context: Optional[Dict] = None
     ):
         self.conn = conn
-        self.schema_name = schema_name
+        self.check_table = check_table
 
-        # todo - rename
-        self.dst_table_name = dst_table_name
-
-        # todo - if None - provide default, should it be now() ?
-        self.task_time = task_time
-
+        self.context = context or {}
         self._raw_df = None
 
     def matched_cols(self, cols):
@@ -38,36 +31,13 @@ class Executor(metaclass=abc.ABCMeta):
             if col in self.date_columns:
                 yield col
 
-    def context(self):
-        return {
-            "tmp_table_name": self.tmp_table,
-            "table_name": self.table_name,
-            "task_time": self.ts_nodash(),
+    def get_context(self):
+        ctx = {
+            "table_fullname": self.check_table.fullname,
+            # todo - provide some defaults if self.context is none, e.g. time
         }
-
-    def ts_nodash(self):
-        if not self.task_time:
-            return ""
-        return self.task_time.strftime("%Y%m%dT%H%M%S")
-
-    # todo - this should be solely constructed in Airflow as it is
-    # todo - specific to kiwi and airflow
-    @property
-    def tmp_table(self):
-        tmp_table_name = f"{self.dst_table_name}_{self.ts_nodash()}"
-        return (
-            f"{self.schema_name}.{tmp_table_name}"
-            if self.schema_name
-            else tmp_table_name
-        )
-
-    @property
-    def table_name(self):
-        return (
-            f"{self.schema_name}.{self.dst_table_name}"
-            if self.schema_name
-            else self.dst_table_name
-        )
+        ctx.update(self.context)
+        return ctx
 
     @property
     def raw_df(self):
@@ -78,7 +48,9 @@ class Executor(metaclass=abc.ABCMeta):
         """
         if self._raw_df is not None:
             return self._raw_df
-        self._raw_df = self.conn.get_pandas_df(f"select * from {self.table_name}")
+        self._raw_df = self.conn.get_pandas_df(
+            f"select * from {self.check_table.fullname}"
+        )
 
         # cast datetime cols to python datetime
         # pandas issue...
@@ -89,7 +61,7 @@ class Executor(metaclass=abc.ABCMeta):
                 )
             except:
                 logging.warning(
-                    f"Wrong date in `{col}` of {self.tmp_table}. Probably all Nones."
+                    f"Wrong date in `{col}` of {self.check_table.fullname}. Probably all Nones."
                 )
         return self._raw_df
 
@@ -155,7 +127,7 @@ executors = None
 
 
 def refresh_executors(
-    schema_name: str, dst_table_name: str, conn: Connector, task_time=None
+    check_table: Table, conn: Connector, context: Optional[Dict] = None
 ):
     """
     Use this to re-init the executor classes that are used to execute rules. To have right
@@ -167,8 +139,8 @@ def refresh_executors(
     """
     global executors
     executors = {
-        PandasExecutor: PandasExecutor(schema_name, dst_table_name, conn, task_time),
-        SqlExecutor: SqlExecutor(schema_name, dst_table_name, conn, task_time),
+        PandasExecutor: PandasExecutor(check_table, conn, context),
+        SqlExecutor: SqlExecutor(check_table, conn, context),
     }
     logging.info("Successfully inited PandasExecutor and SqlExecutor.")
 

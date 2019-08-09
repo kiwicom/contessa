@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from contessa.executor import Executor
+from contessa.models import Table
 from contessa.rules import NotNullRule
 from test.conftest import FakedDatetime
 
@@ -34,7 +35,7 @@ def e(conn):
         def compose_kwargs(self, rule):
             return {}
 
-    return ConcreteExecutor("tmp", "hello_world", conn)
+    return ConcreteExecutor(Table("tmp", "hello_world"), conn)
 
 
 def test_executor_raw_df(e):

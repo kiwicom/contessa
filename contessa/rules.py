@@ -7,18 +7,15 @@ from contessa.executor import get_executor, SqlExecutor
 
 class SqlRule(Rule):
     """
-    Rule that executes a custom sql that is written by anyone.
-    It can use variable `tmp_table_name`
-
-    :param name: str
-    :param sql: str, SQL to execute
+    Rule that executes a custom sql that is custom written.
+    It can use context from Executor.get_context
     """
 
     executor_cls = SqlExecutor
 
     def get_sql_parameters(self):
         e = get_executor(self.__class__)
-        return e.context()
+        return e.get_context()
 
     @property
     def sql(self):
@@ -112,7 +109,7 @@ class NotNullRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} IS NOT NULL FROM {{table_name}}
+            SELECT {{target_column}} IS NOT NULL FROM {{table_fullname}}
         """
 
 
@@ -126,7 +123,7 @@ class GtRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} > {self.value} FROM {{table_name}}
+            SELECT {{target_column}} > {self.value} FROM {{table_fullname}}
         """
 
 
@@ -140,7 +137,7 @@ class GteRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} >= {self.value} FROM {{table_name}}
+            SELECT {{target_column}} >= {self.value} FROM {{table_fullname}}
         """
 
 
@@ -155,7 +152,7 @@ class NotRule(OneColumnRuleSQL):
     def sql(self):
         return f"""
             SELECT {{target_column}} is distinct from {self.value}
-            FROM {{table_name}}
+            FROM {{table_fullname}}
         """
 
 
@@ -172,7 +169,7 @@ class NotColumnRule(OneColumnRuleSQL):
     def sql(self):
         return f"""
             SELECT {{target_column}} is distinct from {self.column2}
-            FROM {{table_name}}
+            FROM {{table_fullname}}
         """
 
 
@@ -186,7 +183,7 @@ class LtRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} < {self.value} FROM {{table_name}}
+            SELECT {{target_column}} < {self.value} FROM {{table_fullname}}
         """
 
 
@@ -200,7 +197,7 @@ class LteRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} <= {self.value} FROM {{table_name}}
+            SELECT {{target_column}} <= {self.value} FROM {{table_fullname}}
         """
 
 
@@ -214,7 +211,7 @@ class EqRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return f"""
-            SELECT {{target_column}} IS NOT DISTINCT FROM {self.value} FROM {{table_name}}
+            SELECT {{target_column}} IS NOT DISTINCT FROM {self.value} FROM {{table_fullname}}
         """
 
 

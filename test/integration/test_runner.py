@@ -1,3 +1,5 @@
+import pandas as pd
+
 from contessa.db import Connector
 from contessa.models import DQBase
 from test.conftest import FakedDatetime
@@ -14,7 +16,10 @@ class TestDataQualityOperator(unittest.TestCase):
         Init a temporary table with some data.
         """
         self.table_name = "booking_all_v2"
-        ts_nodash = FakedDatetime.now().isoformat().replace("-", "").replace(":", "")
+        self.ts_nodash = (
+            FakedDatetime.now().isoformat().replace("-", "").replace(":", "")
+        )
+        self.tmp_table_name = f"{self.table_name}_{self.ts_nodash}"
         self.now = FakedDatetime.now()
 
         sql = [
@@ -34,7 +39,7 @@ class TestDataQualityOperator(unittest.TestCase):
                     )
                 """,
             f"""
-                    CREATE TABLE IF NOT EXISTS tmp.{self.table_name}_{ts_nodash}(
+                    CREATE TABLE IF NOT EXISTS tmp.{self.tmp_table_name}(
                       id SERIAL PRIMARY KEY,
                       src text,
                       dst text,
@@ -45,7 +50,7 @@ class TestDataQualityOperator(unittest.TestCase):
                     )
                 """,
             f"""
-                    INSERT INTO tmp.{self.table_name}_{ts_nodash}
+                    INSERT INTO tmp.{self.table_name}_{self.ts_nodash}
                         (src, dst, price, turnover_after_refunds, initial_price, created_at)
                     VALUES
                         ('BTS', NULL, 1, 100, 11, '2018-09-12T13:00:00'),
@@ -86,7 +91,7 @@ class TestDataQualityOperator(unittest.TestCase):
         sql = """
             SELECT
               CASE WHEN src = 'BTS' and dst is null THEN false ELSE true END as res
-            from {{ tmp_table_name }}
+            from {{ table_fullname }}
         """
         rules = [
             {"name": "not_null", "column": "dst", "time_filter": "created_at"},
@@ -95,10 +100,10 @@ class TestDataQualityOperator(unittest.TestCase):
             {"name": "not_column", "column": "src", "column2": "dst"},
         ]
         self.contessa_runner.run(
-            table_name=self.table_name,
-            schema_name="tmp",
+            check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
+            result_table={"schema_name": "data_quality", "table_name": self.table_name},
             raw_rules=rules,
-            task_time=self.now,
+            context={"task_ts": self.now},
         )
 
         rows = self.conn.get_pandas_df(
@@ -113,6 +118,7 @@ class TestDataQualityOperator(unittest.TestCase):
         self.assertEqual(notnull_rule["failed"], 1)
         self.assertEqual(notnull_rule["passed"], 2)
         self.assertEqual(notnull_rule["attribute"], "dst")
+        self.assertEqual(notnull_rule["task_ts"].timestamp(), self.now.timestamp())
 
         gt_rule = rows.loc[1]
         self.assertEqual(gt_rule["failed"], 3)
@@ -134,18 +140,18 @@ class TestDataQualityOperator(unittest.TestCase):
         sql = """
             SELECT
               CASE WHEN src = 'BTS' and dst is null THEN false ELSE true END as res
-            from {{ table_name }}
-            where created_at between timestamptz '{{task_time}}' and timestamptz '{{task_time}}' + interval '1 hour'
+            from {{ table_fullname }}
+            where created_at between timestamptz '{{task_ts}}' and timestamptz '{{task_ts}}' + interval '1 hour'
         """
         rules = [
             {"name": "not_null", "column": "dst", "time_filter": "created_at"},
             {"name": "sql", "sql": sql, "description": "test sql rule"},
         ]
         self.contessa_runner.run(
-            table_name=self.table_name,
-            schema_name="tmp",
+            check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
+            result_table={"schema_name": "data_quality", "table_name": self.table_name},
             raw_rules=rules,
-            task_time=self.now,
+            context={"task_ts": self.now},
         )
 
         rows = self.conn.get_pandas_df(
@@ -160,6 +166,7 @@ class TestDataQualityOperator(unittest.TestCase):
         self.assertEqual(notnull_rule["failed"], 1)
         self.assertEqual(notnull_rule["passed"], 2)
         self.assertEqual(notnull_rule["attribute"], "dst")
+        self.assertEqual(notnull_rule["task_ts"].timestamp(), self.now.timestamp())
 
         sql_rule = rows.loc[1]
         self.assertEqual(sql_rule["failed"], 1)

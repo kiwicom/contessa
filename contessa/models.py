@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from statistics import median
+from typing import Dict
 
 import pandas as pd
 from sqlalchemy import and_, Column, DateTime, MetaData, text, UniqueConstraint
@@ -72,11 +73,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         )
 
     def init_row(
-        self,
-        rule: Rule,
-        results: pd.Series,
-        conn: Connector,
-        task_time: datetime = None,
+        self, rule: Rule, results: pd.Series, conn: Connector, context: Dict = None
     ):
         """
         Count metrics we want to measure using pd.Series api and set them to quality check object.
@@ -84,7 +81,8 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         if results.isnull().any():
             raise ValueError("In results of rule.apply can't be any Null values.")
 
-        self.task_ts = task_time or datetime.now()
+        # todo - add to doc
+        self.task_ts = context.get("task_ts", None) or datetime.now()
         self.attribute = rule.attribute
         self.rule_name = rule.name
         self.rule_description = rule.description
@@ -136,7 +134,37 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         return f"Rule ({self.attribute} - {self.rule_name} - {self.task_ts})"
 
 
-def get_default_qc_class(table):
+# todo - maybe create also CheckTable
+class Table:
+    def __init__(self, schema_name, table_name):
+        self.schema_name = schema_name
+        self.table_name = table_name
+
+    @property
+    def fullname(self):
+        # todo - solve sanitization. problem - can be already sanitized
+        return f"{self.schema_name}.{self.table_name}"
+
+
+class QualityTable(Table):
+    def __init__(self, schema_name, table_name, quality_name=None):
+        super().__init__(schema_name, table_name)
+        self.quality_name = quality_name
+
+    @property
+    def fullname(self):
+        # todo - test this
+        if self.quality_name:
+            return self.quality_name
+        return f"quality_check_{self.table_name}"
+
+    @property
+    def clsname(self):
+        name = super().fullname.replace(".", "")
+        return f"{name.capitalize()}QualityCheck"
+
+
+def get_default_qc_class(result_table: QualityTable):
     """
     This will construct type/class (not object) that will have special name that its prefixed
     with its table. It's better because sqlalchemy can yell somethings if we would use same class
@@ -148,13 +176,15 @@ def get_default_qc_class(table):
             ...
 
     But it has dynamic name - MyTable is replaced for the table we are doing quality check for.
-    :param table: str, name of table we are doing quality check for
     :return: class with dynamically created name
     """
     attributedict = {
-        "__tablename__": f"quality_check_{table}",
+        "__tablename__": result_table.fullname,
         "id": Column(BIGINT, primary_key=True),
-        "__mapper_args__": {"polymorphic_identity": f"{table}", "concrete": True},
+        "__mapper_args__": {
+            "polymorphic_identity": f"{result_table.fullname}",
+            "concrete": True,
+        },
     }
-    cls = type(f"{table.capitalize()}QualityCheck", (QualityCheck,), attributedict)
+    cls = type(result_table.clsname, (QualityCheck,), attributedict)
     return cls
