@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import sqlalchemy
 from datetime import datetime
@@ -7,7 +7,7 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
-from contessa.models import get_default_qc_class
+from contessa.models import get_default_qc_class, Table, QualityTable
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 
@@ -27,24 +27,32 @@ class ContessaRunner:
     def run(
         self,
         raw_rules: List[Dict[str, str]],
-        table_name: str,
-        schema_name: str,
-        task_time: datetime = None,
+        check_table: Dict,
+        result_table: Dict,  # todo - docs for quality name, maybe defaults..
+        context: Optional[Dict] = None,
     ):
+        check_table = Table(**check_table)
+        result_table = QualityTable(**result_table)
+
         normalized_rules = self.normalize_rules(raw_rules)
-        refresh_executors(schema_name, table_name, self.conn, task_time)
-        quality_check_class = self.get_quality_check_class(table_name)
+        refresh_executors(check_table, self.conn, context)
+        quality_check_class = self.get_quality_check_class(result_table)
+
+        # update schema name where user want to put the dq check results
+        # todo - test this
+        quality_check_class.metadata.schema = result_table.schema_name
         self.ensure_table(quality_check_class)
 
         rules = self.build_rules(normalized_rules)
-        objs = self.do_quality_check(quality_check_class, rules, task_time)
+        objs = self.do_quality_check(quality_check_class, rules, context)
 
         self.insert(objs)
 
     def normalize_rules(self, raw_rules):
         return RuleNormalizer().normalize(raw_rules)
 
-    def do_quality_check(self, dq_cls, rules: List[Rule], task_time: datetime = None):
+    # todo - solve task time
+    def do_quality_check(self, dq_cls, rules: List[Rule], context: Dict = None):
         """
         Run quality check for all rules. Use `qc_cls` to construct objects that will be inserted
         afterwards.
@@ -55,7 +63,7 @@ class ContessaRunner:
             logging.info(f"Executing rule `{rule}`.")
             results = e.execute(rule)
             obj = dq_cls()
-            obj.init_row(rule, results, self.conn, task_time)
+            obj.init_row(rule, results, self.conn, context)
             ret.append(obj)
         return ret
 
@@ -115,7 +123,7 @@ class ContessaRunner:
         """
         return get_rule_cls(rule_def["name"])
 
-    def get_quality_check_class(self, table_name):
+    def get_quality_check_class(self, result_table: QualityTable):
         """
         QualityCheck can be different, e.g. `special_table` has specific quality_check.
         Or kind of generic one that computes number of passed/failed objects etc.
@@ -123,12 +131,12 @@ class ContessaRunner:
         :return: QualityCheck cls
         """
         special_checks = self.special_qc_map.keys()
-        if table_name in special_checks:
-            quality_check_class = self.special_qc_map[table_name]
+        if result_table.fullname in special_checks:
+            quality_check_class = self.special_qc_map[result_table.fullname]
             logging.info(
                 f"Using {quality_check_class.__name__} as quality check class."
             )
         else:
-            quality_check_class = get_default_qc_class(table_name)
+            quality_check_class = get_default_qc_class(result_table)
             logging.info("Using default QualityCheck class.")
         return quality_check_class

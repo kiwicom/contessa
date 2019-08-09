@@ -3,6 +3,7 @@ import pytest
 from datetime import datetime
 
 from contessa.executor import refresh_executors
+from contessa.models import Table
 from contessa.rules import (
     CustomSqlRule,
     GteRule,
@@ -41,17 +42,17 @@ def df():
 def test_one_column_rule_sql(rule, expected, conn):
     conn.execute(
         """
-            drop table if exists tmp_table;
+            drop table if exists public.tmp_table;
 
-            create table tmp_table(
+            create table public.tmp_table(
               value int
             );
 
-            insert into tmp_table(value)
+            insert into public.tmp_table(value)
             values (1), (4), (5), (NULL), (4)
         """
     )
-    refresh_executors("", "tmp_table", conn)
+    refresh_executors(Table(schema_name="public", table_name="tmp_table"), conn)
 
     results = rule.apply(conn)
     expected = pd.Series(expected, name=rule.column)
@@ -70,20 +71,20 @@ def test_one_column_rule_sql(rule, expected, conn):
 def test_not_column_rule(rule, expected, conn):
     conn.execute(
         """
-        drop table if exists tmp_table;
+        drop table if exists public.tmp_table;
 
-        create table tmp_table(
+        create table public.tmp_table(
           value1 int,
           value2 int,
           value3 int,
           value4 int
         );
 
-        insert into tmp_table(value1, value2, value3, value4)
+        insert into public.tmp_table(value1, value2, value3, value4)
         values (1, 2, 1, 1), (1, 1, 1, NULL), (1, 1, 1, 1)
     """
     )
-    refresh_executors("", "tmp_table", conn)
+    refresh_executors(Table(schema_name="public", table_name="tmp_table"), conn)
 
     results = rule.apply(conn)
     expected = pd.Series(expected, name=rule.column)
@@ -93,23 +94,23 @@ def test_not_column_rule(rule, expected, conn):
 def test_sql_apply(conn):
     conn.execute(
         """
-        drop table if exists tmp_table;
+        drop table if exists public.tmp_table;
 
-        create table tmp_table(
+        create table public.tmp_table(
           src text,
           dst text
         );
 
-        insert into tmp_table(src, dst)
+        insert into public.tmp_table(src, dst)
         values ('bts', 'abc'), ('aaa', NULL)
     """
     )
-    refresh_executors("", "tmp_table", conn)
+    refresh_executors(Table(schema_name="public", table_name="tmp_table"), conn)
 
     sql = """
         select
         src = 'aaa'
-        from {{ table_name }}
+        from {{ table_fullname }}
     """
     rule = CustomSqlRule("sql_test", sql, "example description")
     results = rule.apply(conn)
@@ -121,28 +122,32 @@ def test_sql_apply(conn):
 def test_sql_apply_destination(conn):
     conn.execute(
         """
-        drop table if exists dst_table;
+        drop table if exists public.dst_table;
 
-        create table dst_table(
+        create table public.dst_table(
           src text,
           dst text,
           created timestamptz
         );
 
-        insert into dst_table(src, dst, created)
+        insert into public.dst_table(src, dst, created)
         values ('bts', 'abc', '2019-07-31T11:00:00'), ('aaa', NULL, '2019-07-31T11:00:00'), ('aaa', NULL, '2019-07-31T12:00:00')
     """
     )
-    refresh_executors("", "dst_table", conn, datetime(2019, 7, 31, 11, 0, 0))
+    refresh_executors(
+        Table("public", "dst_table"),
+        conn,
+        context={"task_ts": datetime(2019, 7, 31, 11, 0, 0)},
+    )
 
     sql = """
         select
         src = 'aaa'
-        from {{ table_name }}
-        where created between timestamptz '{{task_time}}' and timestamptz '{{task_time}}' + interval '60 seconds'
+        from {{ table_fullname }}
+        where created between timestamptz '{{task_ts}}' and timestamptz '{{task_ts}}' + interval '60 seconds'
     """
     rule = CustomSqlRule("sql_test", sql, "example description")
     results = rule.apply(conn)
     expected = pd.Series([False, True])
     assert list(expected) == list(results)
-    conn.execute("""DROP TABLE dst_table;""")
+    conn.execute("""DROP TABLE public.dst_table;""")

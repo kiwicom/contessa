@@ -3,17 +3,21 @@ import datetime
 from contessa.db import Connector
 from test.conftest import FakedDatetime
 
-from contessa.models import get_default_qc_class
+from contessa.models import get_default_qc_class, QualityTable, DQBase
 
 
 def test_quality_check_init_row(rule, results, conn: Connector):
-    qc = get_default_qc_class("booking")
+    DQBase.metadata.clear()
+    qc = get_default_qc_class(
+        QualityTable(schema_name="data_quality", table_name="booking")
+    )
     assert qc.__tablename__ == "quality_check_booking"
+    assert qc.__name__ == "Data_qualitybookingQualityCheck"
     t = datetime.datetime(2019, 8, 10, 10, 0, 0)
 
     qc.__table__.create(conn.engine)
     instance = qc()
-    instance.init_row(rule, results, conn, task_time=t)
+    instance.init_row(rule, results, conn, context={"task_ts": t})
 
     assert instance.task_ts == t
     assert instance.attribute == "src"
@@ -31,7 +35,8 @@ def test_quality_check_init_row(rule, results, conn: Connector):
 
 
 def test_set_medians(conn: Connector, monkeypatch):
-    qc = get_default_qc_class("t")
+    DQBase.metadata.clear()
+    qc = get_default_qc_class(QualityTable(schema_name="data_quality", table_name="t"))
     qc.__table__.create(conn.engine)
     instance = qc()
 

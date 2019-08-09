@@ -14,3 +14,9 @@ In case of unit tests (you do not need db):
 ```
 $ pytest test/unit/test_operator.py
 ```
+
+# context
+
+{
+	"table_fullname" : "public.booking_all_v2"
+}
