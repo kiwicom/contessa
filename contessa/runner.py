@@ -7,7 +7,7 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
-from contessa.models import get_default_qc_class, Table, QualityTable
+from contessa.models import get_default_qc_class, Table, ResultTable
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 
@@ -32,7 +32,8 @@ class ContessaRunner:
         context: Optional[Dict] = None,
     ):
         check_table = Table(**check_table)
-        result_table = QualityTable(**result_table)
+        result_table = ResultTable(**result_table)
+        context = self.get_context(check_table, context)
 
         normalized_rules = self.normalize_rules(raw_rules)
         refresh_executors(check_table, self.conn, context)
@@ -44,28 +45,46 @@ class ContessaRunner:
         self.ensure_table(quality_check_class)
 
         rules = self.build_rules(normalized_rules)
-        objs = self.do_quality_check(quality_check_class, rules, context)
+        objs = self.do_quality_checks(quality_check_class, rules, context)
 
         self.insert(objs)
 
-    def normalize_rules(self, raw_rules):
-        return RuleNormalizer().normalize(raw_rules)
+    def get_context(self, check_table: Table, context: Optional[Dict] = None) -> Dict:
+        """
+        Construct context to pass to executors.
+        note: could be overridden in Executor.get_context() method.
+        """
+        ctx_defaults = {
+            "table_fullname": check_table.fullname,
+            "task_ts": datetime.now(),  # todo - is now() ok ?
+        }
+        new_context = context or {}
+        for k, v in ctx_defaults.items():
+            if k not in new_context:
+                new_context[k] = v
+        return new_context
 
-    # todo - solve task time
-    def do_quality_check(self, dq_cls, rules: List[Rule], context: Dict = None):
+    def normalize_rules(self, raw_rules):
+        return RuleNormalizer.normalize(raw_rules)
+
+    def do_quality_checks(self, dq_cls, rules: List[Rule], context: Dict = None):
         """
         Run quality check for all rules. Use `qc_cls` to construct objects that will be inserted
         afterwards.
         """
         ret = []
         for rule in rules:
-            e = get_executor(rule)
-            logging.info(f"Executing rule `{rule}`.")
-            results = e.execute(rule)
-            obj = dq_cls()
-            obj.init_row(rule, results, self.conn, context)
+            obj = self.apply_rule(context, dq_cls, rule)
             ret.append(obj)
         return ret
+
+    def apply_rule(self, context, dq_cls, rule):
+        e = get_executor(rule)
+        logging.info(f"Executing rule `{rule}`.")
+        results = e.execute(rule)
+        obj = dq_cls()
+        obj.init_row(rule, results, self.conn, context)
+        return obj
 
     def insert(self, objs):
         """
@@ -123,7 +142,7 @@ class ContessaRunner:
         """
         return get_rule_cls(rule_def["name"])
 
-    def get_quality_check_class(self, result_table: QualityTable):
+    def get_quality_check_class(self, result_table: ResultTable):
         """
         QualityCheck can be different, e.g. `special_table` has specific quality_check.
         Or kind of generic one that computes number of passed/failed objects etc.

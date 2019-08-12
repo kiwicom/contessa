@@ -1,7 +1,7 @@
 import abc
 from datetime import datetime, timedelta
 import logging
-from typing import Optional, Dict
+from typing import Dict
 
 import pandas as pd
 
@@ -17,13 +17,10 @@ class Executor(metaclass=abc.ABCMeta):
 
     date_columns = ("created_at", "updated_at", "confirmed_at")
 
-    def __init__(
-        self, check_table: Table, conn: Connector, context: Optional[Dict] = None
-    ):
+    def __init__(self, check_table: Table, conn: Connector, context: Dict):
         self.conn = conn
         self.check_table = check_table
-
-        self.context = context or {}
+        self.context = context
         self._raw_df = None
 
     def matched_cols(self, cols):
@@ -32,12 +29,10 @@ class Executor(metaclass=abc.ABCMeta):
                 yield col
 
     def get_context(self):
-        ctx = {
-            "table_fullname": self.check_table.fullname,
-            # todo - provide some defaults if self.context is none, e.g. time
-        }
-        ctx.update(self.context)
-        return ctx
+        """
+        Hook for adding something to context specific for Executor. (don't forget to call super)
+        """
+        return self.context
 
     @property
     def raw_df(self):
@@ -126,9 +121,7 @@ class SqlExecutor(Executor):
 executors = None
 
 
-def refresh_executors(
-    check_table: Table, conn: Connector, context: Optional[Dict] = None
-):
+def refresh_executors(check_table: Table, conn: Connector, context: Dict):
     """
     Use this to re-init the executor classes that are used to execute rules. To have right
     data from new table in Executor class.

@@ -30,12 +30,12 @@ def db(conn):
 
 
 @pytest.fixture
-def e(conn):
+def e(conn, ctx):
     class ConcreteExecutor(Executor):
         def compose_kwargs(self, rule):
             return {}
 
-    return ConcreteExecutor(Table("tmp", "hello_world"), conn)
+    return ConcreteExecutor(Table("tmp", "hello_world"), conn, ctx)
 
 
 def test_executor_raw_df(e):
