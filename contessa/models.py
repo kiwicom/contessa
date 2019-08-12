@@ -146,25 +146,34 @@ class Table:
         return f"{self.schema_name}.{self.table_name}"
 
 
-class QualityTable(Table):
-    def __init__(self, schema_name, table_name, quality_name=None):
+class ResultTable(Table):
+    """
+    Name will be constructed as "quality_check_{table_name}", e.g. "quality_check_my_table".
+    Can be overridden by `result_table_name`.
+    """
+
+    def __init__(self, schema_name, table_name, result_table_name=None):
         super().__init__(schema_name, table_name)
-        self.quality_name = quality_name
+        self.result_table_name = result_table_name
 
     @property
     def fullname(self):
         # todo - test this
-        if self.quality_name:
-            return self.quality_name
+        if self.result_table_name:
+            return self.result_table_name
         return f"quality_check_{self.table_name}"
 
     @property
     def clsname(self):
+        """
+        Construct a name for dynamic creation of cls for quality table.
+        Should be unique in runtime.
+        """
         name = super().fullname.replace(".", "")
         return f"{name.capitalize()}QualityCheck"
 
 
-def get_default_qc_class(result_table: QualityTable):
+def get_default_qc_class(result_table: ResultTable):
     """
     This will construct type/class (not object) that will have special name that its prefixed
     with its table. It's better because sqlalchemy can yell somethings if we would use same class

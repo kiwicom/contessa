@@ -1,6 +1,6 @@
 import pytest
 
-from contessa.models import QualityTable
+from contessa.models import ResultTable
 from contessa.rules import GtRule, NotNullRule
 
 
@@ -37,6 +37,6 @@ def test_not_known_rule(dummy_contessa):
 
 def test_generic_typ_qc_class(dummy_contessa):
     assert (
-        dummy_contessa.get_quality_check_class(QualityTable("tmp", "mytable")).__name__
+        dummy_contessa.get_quality_check_class(ResultTable("tmp", "mytable")).__name__
         == "TmpmytableQualityCheck"
     )

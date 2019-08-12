@@ -26,27 +26,30 @@ class RuleNormalizer:
 
     """
 
-    def normalize(self, rules_def):
+    @classmethod
+    def normalize(cls, rules_def):
         normalized = []
         for rule_def in rules_def:
             # if it is normalized, we skip it
-            if not self._should_normalize(rule_def):
+            if not cls._should_normalize(rule_def):
                 normalized.append(rule_def)
                 continue
             # otherwise we split all the permutations of lists into separate rules
-            permutations = self._get_permutations(rule_def)
-            new_rules = self._split_permutations(permutations, rule_def)
+            permutations = cls._get_permutations(rule_def)
+            new_rules = cls._split_permutations(permutations, rule_def)
             normalized.extend(new_rules)
         return normalized
 
-    def _should_normalize(self, rule_def):
+    @staticmethod
+    def _should_normalize(rule_def):
         if "columns" in rule_def:
             return True
         elif "time_filters" in rule_def and len(rule_def["time_filters"]) > 1:
             return True
         return False
 
-    def _get_permutations(self, rule_def):
+    @staticmethod
+    def _get_permutations(rule_def):
         cols = rule_def.get("columns") or [rule_def.get("column")] or [None]
         time_filters = (
             rule_def.get("time_filters") or [rule_def.get("time_filter")] or [None]
@@ -54,7 +57,8 @@ class RuleNormalizer:
         permutations = itertools.product(cols, time_filters)
         return permutations
 
-    def _split_permutations(self, permutations, rule_def):
+    @staticmethod
+    def _split_permutations(permutations, rule_def):
         new_rules = []
         for perm in permutations:
             tmp = rule_def.copy()

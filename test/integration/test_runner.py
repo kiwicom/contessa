@@ -149,14 +149,18 @@ class TestDataQualityOperator(unittest.TestCase):
         ]
         self.contessa_runner.run(
             check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
-            result_table={"schema_name": "data_quality", "table_name": self.table_name},
+            result_table={
+                "schema_name": "data_quality",
+                "table_name": self.table_name,
+                "result_table_name": "abcde",
+            },
             raw_rules=rules,
             context={"task_ts": self.now},
         )
 
         rows = self.conn.get_pandas_df(
             f"""
-            SELECT * from data_quality.quality_check_{self.table_name}
+            SELECT * from data_quality.abcde
             order by created_at
         """
         )

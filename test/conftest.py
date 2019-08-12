@@ -24,3 +24,8 @@ def rule():
 @pytest.fixture(scope="session")
 def results():
     return pd.Series([True, True, False, False, True], name="src")
+
+
+@pytest.fixture(scope="session")
+def ctx():
+    return {"task_ts": FakedDatetime.now(), "table_fullname": "public.tmp_table"}

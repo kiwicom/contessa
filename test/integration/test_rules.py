@@ -39,7 +39,7 @@ def df():
         (EqRule("eq", "value", 4), [False, True, False, False, True]),
     ],
 )
-def test_one_column_rule_sql(rule, expected, conn):
+def test_one_column_rule_sql(rule, expected, conn, ctx):
     conn.execute(
         """
             drop table if exists public.tmp_table;
@@ -52,7 +52,9 @@ def test_one_column_rule_sql(rule, expected, conn):
             values (1), (4), (5), (NULL), (4)
         """
     )
-    refresh_executors(Table(schema_name="public", table_name="tmp_table"), conn)
+    refresh_executors(
+        Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
+    )
 
     results = rule.apply(conn)
     expected = pd.Series(expected, name=rule.column)
@@ -68,7 +70,7 @@ def test_one_column_rule_sql(rule, expected, conn):
         (NotColumnRule("not_column", "value2", "value3"), [True, False, False]),
     ],
 )
-def test_not_column_rule(rule, expected, conn):
+def test_not_column_rule(rule, expected, conn, ctx):
     conn.execute(
         """
         drop table if exists public.tmp_table;
@@ -84,14 +86,16 @@ def test_not_column_rule(rule, expected, conn):
         values (1, 2, 1, 1), (1, 1, 1, NULL), (1, 1, 1, 1)
     """
     )
-    refresh_executors(Table(schema_name="public", table_name="tmp_table"), conn)
+    refresh_executors(
+        Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
+    )
 
     results = rule.apply(conn)
     expected = pd.Series(expected, name=rule.column)
     assert list(expected) == list(results)
 
 
-def test_sql_apply(conn):
+def test_sql_apply(conn, ctx):
     conn.execute(
         """
         drop table if exists public.tmp_table;
@@ -105,7 +109,9 @@ def test_sql_apply(conn):
         values ('bts', 'abc'), ('aaa', NULL)
     """
     )
-    refresh_executors(Table(schema_name="public", table_name="tmp_table"), conn)
+    refresh_executors(
+        Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
+    )
 
     sql = """
         select
@@ -119,7 +125,8 @@ def test_sql_apply(conn):
     conn.execute("""DROP TABLE tmp_table;""")
 
 
-def test_sql_apply_destination(conn):
+def test_sql_apply_extra_ctx(conn, ctx):
+    ctx["dst_table"] = "public.dst_table"
     conn.execute(
         """
         drop table if exists public.dst_table;
@@ -131,19 +138,15 @@ def test_sql_apply_destination(conn):
         );
 
         insert into public.dst_table(src, dst, created)
-        values ('bts', 'abc', '2019-07-31T11:00:00'), ('aaa', NULL, '2019-07-31T11:00:00'), ('aaa', NULL, '2019-07-31T12:00:00')
+        values ('bts', 'abc', '2018-09-12T12:00:00'), ('aaa', NULL, '2018-09-12T12:00:00'), ('aaa', NULL, '2019-07-31T12:00:00')
     """
     )
-    refresh_executors(
-        Table("public", "dst_table"),
-        conn,
-        context={"task_ts": datetime(2019, 7, 31, 11, 0, 0)},
-    )
+    refresh_executors(Table("public", "dst_table"), conn, context=ctx)
 
     sql = """
         select
         src = 'aaa'
-        from {{ table_fullname }}
+        from {{ dst_table }}
         where created between timestamptz '{{task_ts}}' and timestamptz '{{task_ts}}' + interval '60 seconds'
     """
     rule = CustomSqlRule("sql_test", sql, "example description")
