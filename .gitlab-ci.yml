@@ -18,12 +18,12 @@ variables:
       pypitest
 
     [pypi]
-    repository: https://pypi.python.org/pypi
+    repository: https://upload.pypi.org/legacy/
     username: $PYPI_USERNAME
     password: $PYPI_PASSWORD
 
     [pypitest]
-    repository: https://testpypi.python.org/pypi
+    repository: https://test.pypi.org/legacy/
     username: $PYPITEST_USERNAME
     password: $PYPITEST_PASSWORD
 
