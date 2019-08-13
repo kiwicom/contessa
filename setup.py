@@ -16,7 +16,6 @@ setup(
     python_requires=">=3.6",
     classifiers=[
         "Operating System :: OS Independent",
-        "Framework :: Data Quality",
         "Intended Audience :: Data Engineers",
         "Intended Audience :: Data Analyst",
         "Intended Audience :: Developers",
