@@ -54,7 +54,7 @@ release-pypi-test:
   when: manual
   script:
    - echo "$PYPI_CONFIG" > ~/.pypirc
-   - pip install wheel
+   - pip install -U twine
    - python setup.py sdist bdist_wheel
    - twine upload -r pypitest dist/*
   only:
