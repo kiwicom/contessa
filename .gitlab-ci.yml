@@ -55,9 +55,11 @@ release-pypi-test:
   script:
    - echo "$PYPI_CONFIG" > ~/.pypirc
    - pip install wheel
-   - python setup.py bdist_wheel --universal upload -r pypitest
+   - python setup.py sdist bdist_wheel
+   - twine upload -r pypitest dist/*
   only:
    - master
+   - tags
 
 
 release-pypi:
@@ -66,7 +68,9 @@ release-pypi:
   when: manual
   script:
    - echo "$PYPI_CONFIG" > ~/.pypirc
-   - pip install wheel
-   - python setup.py bdist_wheel --universal upload -r pypi
+   - pip install -U twine
+   - python setup.py sdist bdist_wheel
+   - twine upload -r pypi dist/*
   only:
    - master
+   - tags
