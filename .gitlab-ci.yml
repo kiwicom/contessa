@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - release
 
 variables:
   GIT_DEPTH: "3"
@@ -10,6 +11,21 @@ variables:
     --label com.skypicker.gitlab.ci.pipeline=$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID
     --label com.skypicker.gitlab.ci.ref=$CI_BUILD_REF_NAME
     --label com.skypicker.gitlab.ci.build=$CI_PROJECT_URL/builds/$CI_BUILD_ID
+  PYPI_CONFIG: |
+    [distutils]
+    index-servers =
+      pypi
+      pypitest
+
+    [pypi]
+    repository: https://upload.pypi.org/legacy/
+    username: $PYPI_USERNAME
+    password: $PYPI_PASSWORD
+
+    [pypitest]
+    repository: https://test.pypi.org/legacy/
+    username: $PYPITEST_USERNAME
+    password: $PYPITEST_PASSWORD
 
 image: docker:18.06
 
@@ -30,3 +46,31 @@ test:pytest:
     - pip install -r requirements.txt pytest
   script:
     - pytest $CI_PROJECT_DIR/test/
+
+
+release-pypi-test:
+  stage: release
+  image: python:3.7-alpine
+  when: manual
+  script:
+   - echo "$PYPI_CONFIG" > ~/.pypirc
+   - pip install -U twine
+   - python setup.py sdist bdist_wheel
+   - twine upload -r pypitest dist/*
+  only:
+   - master
+   - tags
+
+
+release-pypi:
+  stage: release
+  image: python:3.7-alpine
+  when: manual
+  script:
+   - echo "$PYPI_CONFIG" > ~/.pypirc
+   - pip install -U twine
+   - python setup.py sdist bdist_wheel
+   - twine upload -r pypi dist/*
+  only:
+   - master
+   - tags
