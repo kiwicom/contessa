@@ -51,18 +51,15 @@ class ContessaRunner:
 
     def get_context(self, check_table: Table, context: Optional[Dict] = None) -> Dict:
         """
-        Construct context to pass to executors.
+        Construct context to pass to executors. User context overrides defaults.
         note: could be overridden in Executor.get_context() method.
         """
         ctx_defaults = {
             "table_fullname": check_table.fullname,
             "task_ts": datetime.now(),  # todo - is now() ok ?
         }
-        new_context = context or {}
-        for k, v in ctx_defaults.items():
-            if k not in new_context:
-                new_context[k] = v
-        return new_context
+        ctx_defaults.update(context)
+        return ctx_defaults
 
     def normalize_rules(self, raw_rules):
         return RuleNormalizer.normalize(raw_rules)
