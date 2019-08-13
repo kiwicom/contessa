@@ -12,7 +12,7 @@ def test_quality_check_init_row(rule, results, conn: Connector):
         ResultTable(schema_name="data_quality", table_name="booking")
     )
     assert qc.__tablename__ == "quality_check_booking"
-    assert qc.__name__ == "Data_qualitybookingQualityCheck"
+    assert qc.__name__ == "DataQualityQualityCheckBooking"
     t = datetime.datetime(2019, 8, 10, 10, 0, 0)
 
     qc.__table__.create(conn.engine)

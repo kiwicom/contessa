@@ -148,20 +148,17 @@ class Table:
 
 class ResultTable(Table):
     """
-    Name will be constructed as "quality_check_{table_name}", e.g. "quality_check_my_table".
-    Can be overridden by `result_table_name`.
+    Name will be constructed as "quality_check_{load_table_name}", e.g. "quality_check_my_table".
+    Can be overridden by `table_name`.
     """
 
-    def __init__(self, schema_name, table_name, result_table_name=None):
+    def __init__(self, schema_name, table_name, use_prefix=True):
+        table_name = f"quality_check_{table_name}" if use_prefix else table_name
         super().__init__(schema_name, table_name)
-        self.result_table_name = result_table_name
 
-    @property
-    def fullname(self):
-        # todo - test this
-        if self.result_table_name:
-            return self.result_table_name
-        return f"quality_check_{self.table_name}"
+    def to_camel_case(self, snake_str):
+        components = snake_str.split("_")
+        return components[0] + "".join(x.title() for x in components[1:])
 
     @property
     def clsname(self):
@@ -169,8 +166,9 @@ class ResultTable(Table):
         Construct a name for dynamic creation of cls for quality table.
         Should be unique in runtime.
         """
-        name = super().fullname.replace(".", "")
-        return f"{name.capitalize()}QualityCheck"
+        name = super().fullname.replace(".", "_")
+        camel_case = self.to_camel_case(name)
+        return camel_case[0].title() + camel_case[1:]
 
 
 def get_default_qc_class(result_table: ResultTable):
@@ -188,10 +186,10 @@ def get_default_qc_class(result_table: ResultTable):
     :return: class with dynamically created name
     """
     attributedict = {
-        "__tablename__": result_table.fullname,
+        "__tablename__": result_table.table_name,
         "id": Column(BIGINT, primary_key=True),
         "__mapper_args__": {
-            "polymorphic_identity": f"{result_table.fullname}",
+            "polymorphic_identity": f"{result_table.table_name}",
             "concrete": True,
         },
     }

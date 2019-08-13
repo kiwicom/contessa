@@ -38,5 +38,14 @@ def test_not_known_rule(dummy_contessa):
 def test_generic_typ_qc_class(dummy_contessa):
     assert (
         dummy_contessa.get_quality_check_class(ResultTable("tmp", "mytable")).__name__
-        == "TmpmytableQualityCheck"
+        == "TmpQualityCheckMytable"
+    )
+
+
+def test_generic_typ_qc_class_no_prefix(dummy_contessa):
+    assert (
+        dummy_contessa.get_quality_check_class(
+            ResultTable("tmp", "mytable", use_prefix=False)
+        ).__name__
+        == "TmpMytable"
     )
