@@ -7,7 +7,7 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
-from contessa.models import get_default_qc_class, Table, ResultTable
+from contessa.models import create_default_quality_check_class, Table, ResultTable
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 
@@ -38,10 +38,6 @@ class ContessaRunner:
         normalized_rules = self.normalize_rules(raw_rules)
         refresh_executors(check_table, self.conn, context)
         quality_check_class = self.get_quality_check_class(result_table)
-
-        # update schema name where user want to put the dq check results
-        # todo - test this
-        quality_check_class.metadata.schema = result_table.schema_name
         self.ensure_table(quality_check_class)
 
         rules = self.build_rules(normalized_rules)
@@ -153,6 +149,6 @@ class ContessaRunner:
                 f"Using {quality_check_class.__name__} as quality check class."
             )
         else:
-            quality_check_class = get_default_qc_class(result_table)
+            quality_check_class = create_default_quality_check_class(result_table)
             logging.info("Using default QualityCheck class.")
         return quality_check_class

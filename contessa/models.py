@@ -20,6 +20,9 @@ from sqlalchemy.ext.declarative import (
 from contessa.base_rules import Rule
 from contessa.db import Connector
 
+# default schema for results is `data_quality`, but it can be overridden by passing
+# ResultTable to runner. constructing concrete model for QualityCheck (that's abstract) will
+# swap the schemas before creation - see `create_default_quality_check_class`
 DQBase = declarative_base(metadata=MetaData(schema="data_quality"))
 
 
@@ -171,7 +174,7 @@ class ResultTable(Table):
         return camel_case[0].title() + camel_case[1:]
 
 
-def get_default_qc_class(result_table: ResultTable):
+def create_default_quality_check_class(result_table: ResultTable):
     """
     This will construct type/class (not object) that will have special name that its prefixed
     with its table. It's better because sqlalchemy can yell somethings if we would use same class
@@ -194,4 +197,6 @@ def get_default_qc_class(result_table: ResultTable):
         },
     }
     cls = type(result_table.clsname, (QualityCheck,), attributedict)
+    cls.metadata.schema = result_table.schema_name
+    cls.__table__.schema = result_table.schema_name
     return cls

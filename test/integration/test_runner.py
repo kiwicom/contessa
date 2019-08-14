@@ -27,6 +27,7 @@ class TestDataQualityOperator(unittest.TestCase):
             "DROP SCHEMA if exists data_quality CASCADE;",
             "CREATE SCHEMA IF NOT EXISTS tmp;",
             "CREATE SCHEMA IF NOT EXISTS data_quality;",
+            "CREATE SCHEMA IF NOT EXISTS hello;",
             f"""
                     CREATE TABLE IF NOT EXISTS tmp.{self.table_name}(
                       id SERIAL PRIMARY KEY,
@@ -84,6 +85,7 @@ class TestDataQualityOperator(unittest.TestCase):
         """
         self.conn.execute(f"DROP schema tmp CASCADE;")
         self.conn.execute(f"DROP schema data_quality CASCADE;")
+        self.conn.execute(f"DROP schema hello CASCADE;")
         DQBase.metadata.clear()
 
     @mock.patch("contessa.executor.datetime", FakedDatetime)
@@ -188,6 +190,21 @@ class TestDataQualityOperator(unittest.TestCase):
         rows = self.conn.get_pandas_df(
             f"""
                 SELECT 1 from data_quality.abcde
+            """
+        )
+        self.assertEqual(rows.shape[0], 1)
+
+    def test_different_schema(self):
+        rules = [{"name": "not_null", "column": "dst", "time_filter": "created_at"}]
+        self.contessa_runner.run(
+            check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
+            result_table={"schema_name": "hello", "table_name": "abcde"},
+            raw_rules=rules,
+            context={"task_ts": self.now},
+        )
+        rows = self.conn.get_pandas_df(
+            f"""
+                SELECT 1 from hello.quality_check_abcde
             """
         )
         self.assertEqual(rows.shape[0], 1)
