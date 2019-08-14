@@ -16,10 +16,10 @@ setup(
     python_requires=">=3.6",
     classifiers=[
         "Operating System :: OS Independent",
-        "Intended Audience :: Data Engineers",
-        "Intended Audience :: Data Analyst",
+        "Intended Audience :: Science/Research",
         "Intended Audience :: Developers",
-        "Topic :: Data :: Testing",
+        "Topic :: Database",
+        "Topic :: Software Development :: Quality Assurance",
         "Programming Language :: Python :: 3",
     ],
 )
