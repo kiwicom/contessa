@@ -2,10 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name="contessa",
-    version="0.1.0",
+    version="0.1.1",
     description="Data-quality framework",
-    # long_description=get_long_description(),
-    # long_description_content_type="text/markdown",
+    long_description=open("README.md", "r").read(),
+    long_description_content_type="text/markdown",
     author="Mario Hunka",
     author_email="mario.hunka@kiwi.com",
     url="https://github.com/kiwicom/contessa",
