@@ -13,14 +13,16 @@ class Rule(metaclass=abc.ABCMeta):
 
     :param name: str
     :param time_filter: str
+    :param condition: str
     """
 
     executor_cls = None
     description = None
 
-    def __init__(self, name, time_filter=None):
+    def __init__(self, name, time_filter=None, condition=None):
         self.name = name
         self.time_filter = time_filter
+        self.condition = condition
 
     @property
     def attribute(self):

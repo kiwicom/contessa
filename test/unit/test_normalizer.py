@@ -51,3 +51,46 @@ def test_normalizer(rules_def, normalized):
     expected = sorted(normalized, key=op)
     results_sorted = sorted(results, key=op)
     assert expected == results_sorted
+
+
+@pytest.mark.parametrize(
+    "rules_def, normalized",
+    [
+        (
+            [
+                {
+                    "name": "not_null",
+                    "columns": ["a", "b", "c"],
+                    "condition": "d IN ('start', 'stay_end', 'stopover_end')",
+                    "time_filter": None,
+                }
+            ],
+            [
+                {
+                    "name": "not_null",
+                    "column": "a",
+                    "condition": "d IN ('start', 'stay_end', 'stopover_end')",
+                    "time_filter": None,
+                },
+                {
+                    "name": "not_null",
+                    "column": "b",
+                    "condition": "d IN ('start', 'stay_end', 'stopover_end')",
+                    "time_filter": None,
+                },
+                {
+                    "name": "not_null",
+                    "column": "c",
+                    "condition": "d IN ('start', 'stay_end', 'stopover_end')",
+                    "time_filter": None,
+                },
+            ],
+        )
+    ],
+)
+def test_normalizer_condition(rules_def, normalized):
+    results = RuleNormalizer().normalize(rules_def)
+    op = operator.itemgetter("name", "column", "condition")
+    expected = sorted(normalized, key=op)
+    results_sorted = sorted(results, key=op)
+    assert expected == results_sorted

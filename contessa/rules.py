@@ -36,19 +36,27 @@ class SqlRule(Rule):
             .replace(" }}", "}")
             .replace("}}", "}")
         )
-        formated_sql = sql.format(**self.get_sql_parameters())
-        return formated_sql
+        formatted_sql = sql.format(**self.get_sql_parameters())
+        return formatted_sql
 
     @property
-    def sql_with_time_filter(self):
+    def sql_with_where(self):
         """
-        Adds time filter to SQL statement.
+        Adds `where` statement with time filter and/or user-defined condition to SQL statement.
         Could be tricky, you need to format your SQL query so WHERE statement fits to the end of it
         :return:
         """
         e = get_executor(SqlRule)
-        where_time_filter = e.compose_where_filter(self)
-        return f"{self.format_sql()} {where_time_filter}"
+        where_clause = "WHERE "
+        where_time_filter = e.compose_where_time_filter(self)
+        where_condition = e.compose_where_condition(self)
+        if where_time_filter == "" and where_condition == "":
+            where_clause = ""
+        elif where_time_filter != "" and where_condition != "":
+            where_clause = f"{where_clause} {where_time_filter} AND {where_condition}"
+        else:
+            where_clause = f"{where_clause} {where_time_filter} {where_condition}"
+        return f"{self.format_sql()} {where_clause}"
 
     def apply(self, conn: Connector):
         """
@@ -56,7 +64,7 @@ class SqlRule(Rule):
         to do a quality check. If yes, return pd.Series.
         :return: pd.Series
         """
-        sql = self.sql_with_time_filter
+        sql = self.sql_with_where
         results = [
             r for r in conn.get_records(sql)
         ]  # returns generator, so get it to memory

@@ -60,7 +60,7 @@ class Executor(metaclass=abc.ABCMeta):
                 )
         return self._raw_df
 
-    def compose_where_filter(self, rule):
+    def compose_where_time_filter(self, rule):
         """
         Composes WHERE statement, which filters records by time_filter`.
         Rule attribute `time_filter` filters
@@ -72,7 +72,19 @@ class Executor(metaclass=abc.ABCMeta):
             past = (datetime.now() - timedelta(days=30)).strftime(
                 "%Y-%m-%d %H:%M:%S UTC"
             )
-            return f"""WHERE {time_filter_column} >= '{past}'::timestamp"""
+            return f"""{time_filter_column} >= '{past}'::timestamp"""
+        else:
+            return ""
+
+    def compose_where_condition(self, rule):
+        """
+        Composes WHERE statement, which filters records by user-provided condition with Rule attribute `condition`.
+        Very simple for now, ready for possible extensions later.
+        :return: str, WHERE `condition` filter statement
+        """
+        condition = rule.condition
+        if condition:
+            return condition
         else:
             return ""
 

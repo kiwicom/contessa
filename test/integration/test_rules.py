@@ -64,6 +64,44 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
 @pytest.mark.parametrize(
     "rule, expected",
     [
+        (GtRule("gt", "value", 4, condition="conditional is TRUE"), [False, False]),
+        (
+            NotNullRule("not_null", "value", condition="conditional is TRUE"),
+            [True, True],
+        ),
+        (GteRule("gte", "value", 4, condition="conditional is TRUE"), [False, True]),
+        (NotRule("not", "value", 4, condition="conditional is TRUE"), [True, False]),
+        (LtRule("lt", "value", 4, condition="conditional is TRUE"), [True, False]),
+        (LteRule("lte", "value", 4, condition="conditional is TRUE"), [True, True]),
+        (EqRule("eq", "value", 4, condition="conditional is TRUE"), [False, True]),
+    ],
+)
+def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
+    conn.execute(
+        """
+            drop table if exists public.tmp_table;
+
+            create table public.tmp_table(
+              value int,
+              conditional boolean
+            );
+
+            insert into public.tmp_table(value, conditional)
+            values (1, TRUE), (4, TRUE), (5, FALSE), (NULL, FALSE), (4, FALSE)
+        """
+    )
+    refresh_executors(
+        Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
+    )
+
+    results = rule.apply(conn)
+    expected = pd.Series(expected, name=rule.column)
+    assert list(expected) == list(results)
+
+
+@pytest.mark.parametrize(
+    "rule, expected",
+    [
         (NotColumnRule("not_column", "value1", "value2"), [True, False, False]),
         (NotColumnRule("not_column", "value4", "value1"), [False, True, False]),
         (NotColumnRule("not_column", "value1", "value3"), [False, False, False]),
