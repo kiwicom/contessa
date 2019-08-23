@@ -1,10 +1,10 @@
 import pandas as pd
 import pytest
-from datetime import datetime
 
-from contessa.executor import refresh_executors
+from contessa.executor import refresh_executors, SqlExecutor
 from contessa.models import Table
 from contessa.rules import (
+    SqlRule,
     CustomSqlRule,
     GteRule,
     GtRule,
@@ -50,6 +50,44 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
 
             insert into public.tmp_table(value)
             values (1), (4), (5), (NULL), (4)
+        """
+    )
+    refresh_executors(
+        Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
+    )
+
+    results = rule.apply(conn)
+    expected = pd.Series(expected, name=rule.column)
+    assert list(expected) == list(results)
+
+
+@pytest.mark.parametrize(
+    "rule, expected",
+    [
+        (GtRule("gt", "value", 4, condition="conditional is TRUE"), [False, False]),
+        (
+            NotNullRule("not_null", "value", condition="conditional is TRUE"),
+            [True, True],
+        ),
+        (GteRule("gte", "value", 4, condition="conditional is TRUE"), [False, True]),
+        (NotRule("not", "value", 4, condition="conditional is TRUE"), [True, False]),
+        (LtRule("lt", "value", 4, condition="conditional is TRUE"), [True, False]),
+        (LteRule("lte", "value", 4, condition="conditional is TRUE"), [True, True]),
+        (EqRule("eq", "value", 4, condition="conditional is TRUE"), [False, True]),
+    ],
+)
+def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
+    conn.execute(
+        """
+            drop table if exists public.tmp_table;
+
+            create table public.tmp_table(
+              value int,
+              conditional boolean
+            );
+
+            insert into public.tmp_table(value, conditional)
+            values (1, TRUE), (4, TRUE), (5, FALSE), (NULL, FALSE), (4, FALSE)
         """
     )
     refresh_executors(
@@ -154,3 +192,51 @@ def test_sql_apply_extra_ctx(conn, ctx):
     expected = pd.Series([False, True])
     assert list(expected) == list(results)
     conn.execute("""DROP TABLE public.dst_table;""")
+
+
+def test_new_rule(conn, ctx):
+    class CountSqlRule(SqlRule):
+        executor_cls = SqlExecutor
+
+        def __init__(self, name, count, **kwargs):
+            super().__init__(name, **kwargs)
+            self.count = count
+
+        def get_sql_parameters(self):
+            context = super().get_sql_parameters()
+            context.update({"target_count": self.count})
+            return context
+
+        @property
+        def sql(self):
+            return f"""
+                SELECT COUNT(*) ={{target_count}} FROM {{table_fullname}}
+            """
+
+    conn.execute(
+        """
+        drop table if exists public.tmp_table;
+    
+        create table public.tmp_table(
+          a text,
+          b text
+        );
+    
+        insert into public.tmp_table(a, b)
+        values ('bts', 'abc'), ('aaa', NULL)
+    """
+    )
+
+    refresh_executors(
+        Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
+    )
+    rule = CountSqlRule("count", 2)
+    results = rule.apply(conn)
+    expected = pd.Series([True])
+    assert list(expected) == list(results)
+
+    rule = CountSqlRule("count", 2, condition="a = 'bts'")
+    results = rule.apply(conn)
+    expected = pd.Series([False])
+    assert list(expected) == list(results)
+    conn.execute("""DROP TABLE tmp_table;""")
