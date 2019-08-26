@@ -8,7 +8,6 @@ from contessa.rules import (
     CustomSqlRule,
     GteRule,
     GtRule,
-    NotColumnRule,
     NotNullRule,
     NotRule,
     LtRule,
@@ -30,7 +29,10 @@ def df():
 @pytest.mark.parametrize(
     "rule, expected",
     [
-        (GtRule("gt", "value", 4), [False, False, True, False, False]),
+        (
+            GtRule("gt", "value", "value2"),
+            [False, False, True, False, False],
+        ),  # test another col
         (NotNullRule("not_null", "value"), [True, True, True, False, True]),
         (GteRule("gte", "value", 4), [False, True, True, False, True]),
         (NotRule("not", "value", 4), [True, False, True, True, False]),
@@ -45,11 +47,12 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
             drop table if exists public.tmp_table;
 
             create table public.tmp_table(
-              value int
+              value int,
+              value2 int
             );
 
-            insert into public.tmp_table(value)
-            values (1), (4), (5), (NULL), (4)
+            insert into public.tmp_table(value, value2)
+            values (1, 2), (4, 5), (5, 3), (NULL, NULL), (4, 11)
         """
     )
     refresh_executors(
@@ -102,13 +105,13 @@ def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
 @pytest.mark.parametrize(
     "rule, expected",
     [
-        (NotColumnRule("not_column", "value1", "value2"), [True, False, False]),
-        (NotColumnRule("not_column", "value4", "value1"), [False, True, False]),
-        (NotColumnRule("not_column", "value1", "value3"), [False, False, False]),
-        (NotColumnRule("not_column", "value2", "value3"), [True, False, False]),
+        (NotRule("not", "value1", "value2"), [True, False, False]),
+        (LteRule("lte", "value4", "value1"), [True, False, True]),
+        (EqRule("eq", "value1", "value3"), [True, True, True]),
+        (GtRule("gte", "value2", "value3"), [True, False, False]),
     ],
 )
-def test_not_column_rule(rule, expected, conn, ctx):
+def test_cmp_with_other_col_rules(rule, expected, conn, ctx):
     conn.execute(
         """
         drop table if exists public.tmp_table;

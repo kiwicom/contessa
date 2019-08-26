@@ -164,23 +164,6 @@ class NotRule(OneColumnRuleSQL):
         """
 
 
-class NotColumnRule(OneColumnRuleSQL):
-    description = (
-        "True when data in one column is different from data in another column."
-    )
-
-    def __init__(self, name, column, column2, **kwargs):
-        super().__init__(name, column, **kwargs)
-        self.column2 = column2
-
-    @property
-    def sql(self):
-        return f"""
-            SELECT {{target_column}} is distinct from {self.column2}
-            FROM {{table_fullname}}
-        """
-
-
 class LtRule(OneColumnRuleSQL):
     description = "True when data is less than input value."
 
@@ -235,7 +218,6 @@ EQ = "eq"
 
 RULES = {
     NOT_NULL: NotNullRule,
-    NOT_COLUMN: NotColumnRule,
     GT: GtRule,
     GTE: GteRule,
     NOT: NotRule,
