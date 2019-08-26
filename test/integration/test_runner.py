@@ -99,7 +99,7 @@ class TestDataQualityOperator(unittest.TestCase):
             {"name": "not_null", "column": "dst", "time_filter": "created_at"},
             {"name": "gt", "column": "price", "value": 10, "time_filter": "created_at"},
             {"name": "sql", "sql": sql, "description": "test sql rule"},
-            {"name": "not_column", "column": "src", "column2": "dst"},
+            {"name": "not", "column": "src", "value": "dst"},
         ]
         self.contessa_runner.run(
             check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
