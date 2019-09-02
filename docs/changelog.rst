@@ -1,9 +1,11 @@
 CONTESSA CHANGELOG
 ============================================
 
-2019-08-XX; 0.1.1;
+2019-09-02; 0.1.2;
 --------------------------------------------
 - introduce `condition` parameter to SqlRule
+- "value" argument in rules can be column name. e.g. {"name": "not", "column": "src", "value": "dst"}
+
 
 2019-08-13; 0.1.0;
 --------------------------------------------
