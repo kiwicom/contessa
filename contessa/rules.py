@@ -25,18 +25,18 @@ class SqlRule(Rule):
         """
         return f""
 
-    def format_sql(self):
+    def format_sql(self, sql):
         """
         Replace some parameters in query.
         :return str, formatted sql
         """
-        sql = (
-            self.sql.replace("{{ ", "{")
+        sql_replaced = (
+            sql.replace("{{ ", "{")
             .replace("{{", "{")
             .replace(" }}", "}")
             .replace("}}", "}")
         )
-        formatted_sql = sql.format(**self.get_sql_parameters())
+        formatted_sql = sql_replaced.format(**self.get_sql_parameters())
         return formatted_sql
 
     @property
@@ -56,7 +56,8 @@ class SqlRule(Rule):
             where_clause = f"{where_clause} {where_time_filter} AND {where_condition}"
         else:
             where_clause = f"{where_clause} {where_time_filter} {where_condition}"
-        return f"{self.format_sql()} {where_clause}"
+        final_sql = f"{self.sql} {where_clause}"
+        return self.format_sql(final_sql)
 
     def apply(self, conn: Connector):
         """
