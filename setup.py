@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="contessa",
-    version="0.1.2",
+    version="0.1.3",
     description="Data-quality framework",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
