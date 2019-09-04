@@ -45,7 +45,8 @@ class ContessaRunner:
 
         self.insert(objs)
 
-    def get_context(self, check_table: Table, context: Optional[Dict] = None) -> Dict:
+    @staticmethod
+    def get_context(check_table: Table, context: Optional[Dict] = None) -> Dict:
         """
         Construct context to pass to executors. User context overrides defaults.
         note: could be overridden in Executor.get_context() method.
