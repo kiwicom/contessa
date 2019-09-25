@@ -11,7 +11,7 @@ setup(
     url="https://github.com/kiwicom/contessa",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["sqlalchemy>=1.2", "psycopg2>=2.7"],
+    install_requires=["sqlalchemy>=1.2", "psycopg2>=2.7", "jinja2>=2.10.1"],
     tests_require=["pytest"],
     python_requires=">=3.6",
     classifiers=[

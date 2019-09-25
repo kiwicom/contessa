@@ -212,8 +212,8 @@ def test_new_rule(conn, ctx):
 
         @property
         def sql(self):
-            return f"""
-                SELECT COUNT(*) ={{target_count}} FROM {{table_fullname}}
+            return """
+                SELECT COUNT(*) = {{target_count}} FROM {{table_fullname}}
             """
 
     conn.execute(
