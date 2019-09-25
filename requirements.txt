@@ -4,6 +4,8 @@
 #
 #    pip-compile --output-file=requirements.txt requirements.in
 #
+jinja2==2.10.1
+markupsafe==1.1.1         # via jinja2
 numpy==1.17.0             # via pandas
 pandas==0.25.0
 psycopg2-binary==2.8.3

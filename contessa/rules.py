@@ -1,3 +1,4 @@
+import jinja2
 import pandas as pd
 
 from contessa.base_rules import Rule
@@ -25,19 +26,15 @@ class SqlRule(Rule):
         """
         return f""
 
-    def format_sql(self, sql):
+    def render_sql(self, sql):
         """
         Replace some parameters in query.
         :return str, formatted sql
         """
-        sql_replaced = (
-            sql.replace("{{ ", "{")
-            .replace("{{", "{")
-            .replace(" }}", "}")
-            .replace("}}", "}")
-        )
-        formatted_sql = sql_replaced.format(**self.get_sql_parameters())
-        return formatted_sql
+        t = jinja2.Template(sql)
+        ctx = self.get_sql_parameters()
+        rendered = t.render(**ctx)
+        return rendered
 
     @property
     def sql_with_where(self):
@@ -57,7 +54,7 @@ class SqlRule(Rule):
         else:
             where_clause = f"{where_clause} {where_time_filter} {where_condition}"
         final_sql = f"{self.sql} {where_clause}"
-        return self.format_sql(final_sql)
+        return self.render_sql(final_sql)
 
     def apply(self, conn: Connector):
         """
@@ -94,6 +91,8 @@ class OneColumnRuleSQL(SqlRule):
     def get_sql_parameters(self):
         context = super().get_sql_parameters()
         context.update({"target_column": self.column})
+        if hasattr(self, "value"):
+            context.update({"value": self.value})
         return context
 
     def __str__(self):
@@ -117,7 +116,7 @@ class NotNullRule(OneColumnRuleSQL):
 
     @property
     def sql(self):
-        return f"""
+        return """
             SELECT {{target_column}} IS NOT NULL FROM {{table_fullname}}
         """
 
@@ -131,8 +130,8 @@ class GtRule(OneColumnRuleSQL):
 
     @property
     def sql(self):
-        return f"""
-            SELECT {{target_column}} > {self.value} FROM {{table_fullname}}
+        return """
+            SELECT {{target_column}} > {{value}} FROM {{table_fullname}}
         """
 
 
@@ -145,8 +144,8 @@ class GteRule(OneColumnRuleSQL):
 
     @property
     def sql(self):
-        return f"""
-            SELECT {{target_column}} >= {self.value} FROM {{table_fullname}}
+        return """
+            SELECT {{target_column}} >= {{value}} FROM {{table_fullname}}
         """
 
 
@@ -159,8 +158,8 @@ class NotRule(OneColumnRuleSQL):
 
     @property
     def sql(self):
-        return f"""
-            SELECT {{target_column}} is distinct from {self.value}
+        return """
+            SELECT {{target_column}} is distinct from {{value}}
             FROM {{table_fullname}}
         """
 
@@ -174,8 +173,8 @@ class LtRule(OneColumnRuleSQL):
 
     @property
     def sql(self):
-        return f"""
-            SELECT {{target_column}} < {self.value} FROM {{table_fullname}}
+        return """
+            SELECT {{target_column}} < {{value}} FROM {{table_fullname}}
         """
 
 
@@ -188,8 +187,8 @@ class LteRule(OneColumnRuleSQL):
 
     @property
     def sql(self):
-        return f"""
-            SELECT {{target_column}} <= {self.value} FROM {{table_fullname}}
+        return """
+            SELECT {{target_column}} <= {{value}} FROM {{table_fullname}}
         """
 
 
@@ -202,8 +201,8 @@ class EqRule(OneColumnRuleSQL):
 
     @property
     def sql(self):
-        return f"""
-            SELECT {{target_column}} IS NOT DISTINCT FROM {self.value} FROM {{table_fullname}}
+        return """
+            SELECT {{target_column}} IS NOT DISTINCT FROM {{value}} FROM {{table_fullname}}
         """
 
 

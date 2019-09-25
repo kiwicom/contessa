@@ -1,6 +1,11 @@
 CONTESSA CHANGELOG
 ============================================
 
+2019-XX-XX; 0.2.0;
+--------------------------------------------
+- refactor rules to use jinja2 as templating system
+
+
 2019-09-04; 0.1.3;
 --------------------------------------------
 - `condition` parameter in SqlRule is templated now
