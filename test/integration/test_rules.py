@@ -77,6 +77,10 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
         (LtRule("lt", "value", 4, condition="conditional is TRUE"), [True, False]),
         (LteRule("lte", "value", 4, condition="conditional is TRUE"), [True, True]),
         (EqRule("eq", "value", 4, condition="conditional is TRUE"), [False, True]),
+        (
+            LteRule("lte", "date", "now()", condition="conditional is FALSE"),
+            [False, False, True],
+        ),
     ],
 )
 def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
@@ -86,11 +90,12 @@ def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
 
             create table public.tmp_table(
               value int,
-              conditional boolean
+              conditional boolean,
+              date timestamptz
             );
 
-            insert into public.tmp_table(value, conditional)
-            values (1, TRUE), (4, TRUE), (5, FALSE), (NULL, FALSE), (4, FALSE)
+            insert into public.tmp_table(value, conditional, date)
+            values (1, TRUE, NULL), (4, TRUE, NULL), (5, FALSE, NULL), (NULL, FALSE, NULL), (4, FALSE, '2019-10-02T13:30:00+0020')
         """
     )
     refresh_executors(
