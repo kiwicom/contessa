@@ -67,14 +67,26 @@ class Executor(metaclass=abc.ABCMeta):
         only data that were updated/created/confirmed in last 30 days.
         :return: str, WHERE `time_filter` filter statement
         """
-        time_filter_column = rule.time_filter
-        if time_filter_column:
-            past = (datetime.now() - timedelta(days=30)).strftime(
-                "%Y-%m-%d %H:%M:%S UTC"
-            )
-            return f"""{time_filter_column} >= '{past}'::timestamp"""
-        else:
-            return ""
+        days = 30
+        filters = []
+        result = []
+        if rule.time_filter:
+            if isinstance(rule.time_filter, str):
+                filters.append({"column": rule.time_filter, "days": days})
+            elif isinstance(rule.time_filter, list):
+                for each in rule.time_filter:
+                    filters.append(
+                        {"column": each.get("column"), "days": each.get("days", days)}
+                    )
+
+            for each in filters:
+                past = (
+                    self.context.get("task_ts", datetime.now())
+                    - timedelta(days=each["days"])
+                ).strftime("%Y-%m-%d %H:%M:%S UTC")
+                result.append(f"""{each["column"]} >= '{past}'::timestamp""")
+
+        return " AND ".join(result)
 
     def compose_where_condition(self, rule):
         """

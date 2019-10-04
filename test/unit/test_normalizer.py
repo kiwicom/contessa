@@ -33,10 +33,27 @@ from contessa.normalizer import RuleNormalizer
             ],
         ),
         (
-            [{"name": "not_null", "column": "a", "time_filters": ["a", "b"]}],
             [
-                {"name": "not_null", "column": "a", "time_filter": "a"},
-                {"name": "not_null", "column": "a", "time_filter": "b"},
+                {
+                    "name": "not_null",
+                    "column": "a",
+                    "time_filters": [
+                        {"column": "a", "days": 10},
+                        {"column": "b", "days": 5},
+                    ],
+                }
+            ],
+            [
+                {
+                    "name": "not_null",
+                    "column": "a",
+                    "time_filter": {"column": "a", "days": 10},
+                },
+                {
+                    "name": "not_null",
+                    "column": "a",
+                    "time_filter": {"column": "b", "days": 5},
+                },
             ],
         ),
         (
@@ -47,7 +64,7 @@ from contessa.normalizer import RuleNormalizer
 )
 def test_normalizer(rules_def, normalized):
     results = RuleNormalizer().normalize(rules_def)
-    op = operator.itemgetter("name", "column", "time_filter")
+    op = operator.itemgetter("name", "column")
     expected = sorted(normalized, key=op)
     results_sorted = sorted(results, key=op)
     assert expected == results_sorted
