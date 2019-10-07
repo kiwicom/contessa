@@ -13,7 +13,7 @@ from contessa.normalizer import RuleNormalizer
                 {
                     "name": "not_null",
                     "columns": ["a", "b", "c"],
-                    "time_filters": ["c", "u"],
+                    "separate_time_filters": ["c", "u"],
                 }
             ],
             [
@@ -33,11 +33,38 @@ from contessa.normalizer import RuleNormalizer
             ],
         ),
         (
+            [{"name": "not_null", "column": "a", "time_filter": "a"}],
+            [{"name": "not_null", "column": "a", "time_filter": "a"}],
+        ),
+    ],
+)
+def test_normalizer(rules_def, normalized):
+    results = RuleNormalizer().normalize(rules_def)
+    op = operator.itemgetter("name", "column", "time_filter")
+    expected = sorted(normalized, key=op)
+    results_sorted = sorted(results, key=op)
+    assert expected == results_sorted
+
+
+@pytest.mark.parametrize(
+    "rules_def, normalized",
+    [
+        (
             [
                 {
                     "name": "not_null",
                     "column": "a",
-                    "time_filters": [
+                    "separate_time_filters": [{"column": "c"}],
+                }
+            ],
+            [{"name": "not_null", "column": "a", "time_filter": {"column": "c"}}],
+        ),
+        (
+            [
+                {
+                    "name": "not_null",
+                    "column": "a",
+                    "separate_time_filters": [
                         {"column": "a", "days": 10},
                         {"column": "b", "days": 5},
                     ],
@@ -56,17 +83,13 @@ from contessa.normalizer import RuleNormalizer
                 },
             ],
         ),
-        (
-            [{"name": "not_null", "column": "a", "time_filter": "a"}],
-            [{"name": "not_null", "column": "a", "time_filter": "a"}],
-        ),
     ],
 )
-def test_normalizer(rules_def, normalized):
+def test_normalizer_separate_time_filters(rules_def, normalized):
     results = RuleNormalizer().normalize(rules_def)
-    op = operator.itemgetter("name", "column")
-    expected = sorted(normalized, key=op)
-    results_sorted = sorted(results, key=op)
+    key = lambda x: (x["name"], x["column"], x["time_filter"]["column"])
+    expected = sorted(normalized, key=key)
+    results_sorted = sorted(results, key=key)
     assert expected == results_sorted
 
 
