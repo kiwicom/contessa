@@ -80,8 +80,8 @@ class SqlRule(Rule):
 class OneColumnRuleSQL(SqlRule):
     executor_cls = SqlExecutor
 
-    def __init__(self, name, column, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name, column, description = None, **kwargs):
+        super().__init__(name, description = description, **kwargs)
         self.column = column
 
     @property
@@ -102,9 +102,10 @@ class OneColumnRuleSQL(SqlRule):
 
 class CustomSqlRule(SqlRule):
     def __init__(self, name, sql, description, **kwargs):
-        super().__init__(name, **kwargs)
+        super().__init__(name, description=description, **kwargs)
         self.custom_sql = sql
-        self.description = description
+
+
 
     @property
     def sql(self):
@@ -112,7 +113,9 @@ class CustomSqlRule(SqlRule):
 
 
 class NotNullRule(OneColumnRuleSQL):
-    description = "True when data is null."
+
+    def __init__(self, name, column, description = "True when data is null.", **kwargs):
+        super().__init__(name, column, description=description, **kwargs)
 
     @property
     def sql(self):
@@ -122,10 +125,10 @@ class NotNullRule(OneColumnRuleSQL):
 
 
 class GtRule(OneColumnRuleSQL):
-    description = "True when data is greater than input value."
 
-    def __init__(self, name, column, value, **kwargs):
-        super().__init__(name, column, **kwargs)
+
+    def __init__(self, name, column, value, description = "True when data is greater than input value.", **kwargs):
+        super().__init__(name, column, description = description, **kwargs)
         self.value = value
 
     @property
@@ -136,10 +139,10 @@ class GtRule(OneColumnRuleSQL):
 
 
 class GteRule(OneColumnRuleSQL):
-    description = "True when data is greater or even than input value."
 
-    def __init__(self, name, column, value, **kwargs):
-        super().__init__(name, column, **kwargs)
+
+    def __init__(self, name, column, value, description = "True when data is greater or even than input value.", **kwargs):
+        super().__init__(name, column, description = description, **kwargs)
         self.value = value
 
     @property
@@ -150,10 +153,10 @@ class GteRule(OneColumnRuleSQL):
 
 
 class NotRule(OneColumnRuleSQL):
-    description = "True when data is not input value."
 
-    def __init__(self, name, column, value, **kwargs):
-        super().__init__(name, column, **kwargs)
+
+    def __init__(self, name, column, value, description = "True when data is not input value.", **kwargs):
+        super().__init__(name, column, description = description, **kwargs)
         self.value = value
 
     @property
@@ -165,10 +168,10 @@ class NotRule(OneColumnRuleSQL):
 
 
 class LtRule(OneColumnRuleSQL):
-    description = "True when data is less than input value."
 
-    def __init__(self, name, column, value, **kwargs):
-        super().__init__(name, column, **kwargs)
+
+    def __init__(self, name, column, value, description = "True when data is less than input value.",  **kwargs):
+        super().__init__(name, column, description = description, **kwargs)
         self.value = value
 
     @property
@@ -179,10 +182,10 @@ class LtRule(OneColumnRuleSQL):
 
 
 class LteRule(OneColumnRuleSQL):
-    description = "True when data is less or even than input value."
 
-    def __init__(self, name, column, value, **kwargs):
-        super().__init__(name, column, **kwargs)
+
+    def __init__(self, name, column, value, description = "True when data is less or even than input value.", **kwargs):
+        super().__init__(name, column, description = description, **kwargs)
         self.value = value
 
     @property
@@ -193,10 +196,10 @@ class LteRule(OneColumnRuleSQL):
 
 
 class EqRule(OneColumnRuleSQL):
-    description = "True when data is the same as input value."
 
-    def __init__(self, name, column, value, **kwargs):
-        super().__init__(name, column, **kwargs)
+
+    def __init__(self, name, column, value, description = "True when data is the same as input value.", **kwargs):
+        super().__init__(name, column, description = description, **kwargs)
         self.value = value
 
     @property

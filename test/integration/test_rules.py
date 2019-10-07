@@ -206,8 +206,8 @@ def test_new_rule(conn, ctx):
     class CountSqlRule(SqlRule):
         executor_cls = SqlExecutor
 
-        def __init__(self, name, count, **kwargs):
-            super().__init__(name, **kwargs)
+        def __init__(self, name, count, description = None, **kwargs):
+            super().__init__(name, description = description, **kwargs)
             self.count = count
 
         def get_sql_parameters(self):
