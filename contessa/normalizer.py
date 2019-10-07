@@ -1,4 +1,5 @@
 import itertools
+import logging
 
 
 class RuleNormalizer:
@@ -7,7 +8,7 @@ class RuleNormalizer:
     one time_filter with provided where condition.
 
     Example:
-        {'name': 'not_null', 'columns': ['a', 'b', 'c'], 'time_filters': ['c', 'u'], 'condition': 'd is TRUE'}
+        {'name': 'not_null', 'columns': ['a', 'b', 'c'], 'separate_time_filters': ['c', 'u'], 'condition': 'd is TRUE'}
 
         will be transformed to
 
@@ -22,7 +23,7 @@ class RuleNormalizer:
     from it. Currently it supports:
 
         - multiple columns
-        - multiple time_filters
+        - multiple separate_time_filters
 
     """
 
@@ -44,7 +45,11 @@ class RuleNormalizer:
     def _should_normalize(rule_def):
         if "columns" in rule_def:
             return True
-        elif "time_filters" in rule_def and len(rule_def["time_filters"]) > 1:
+        elif "separate_time_filters" in rule_def:
+            if len(rule_def["separate_time_filters"]) <= 1:
+                logging.error(
+                    "Please use `time_filter` for one column, converting for now."
+                )
             return True
         return False
 
@@ -52,7 +57,9 @@ class RuleNormalizer:
     def _get_permutations(rule_def):
         cols = rule_def.get("columns") or [rule_def.get("column")] or [None]
         time_filters = (
-            rule_def.get("time_filters") or [rule_def.get("time_filter")] or [None]
+            rule_def.get("separate_time_filters")
+            or [rule_def.get("time_filter")]
+            or [None]
         )
         permutations = itertools.product(cols, time_filters)
         return permutations
@@ -65,6 +72,6 @@ class RuleNormalizer:
             tmp["column"] = perm[0]
             tmp.pop("columns", None)
             tmp["time_filter"] = perm[1]
-            tmp.pop("time_filters", None)
+            tmp.pop("separate_time_filters", None)
             new_rules.append(tmp)
         return new_rules
