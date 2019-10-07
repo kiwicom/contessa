@@ -19,10 +19,11 @@ class Rule(metaclass=abc.ABCMeta):
     executor_cls = None
     description = None
 
-    def __init__(self, name, time_filter=None, condition=None):
+    def __init__(self, name, description, time_filter=None, condition=None):
         self.name = name
         self.time_filter = time_filter
         self.condition = condition
+        self.description = description
 
     @property
     def attribute(self):
