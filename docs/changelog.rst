@@ -4,6 +4,7 @@ CONTESSA CHANGELOG
 2019-XX-XX; 0.2.0;
 --------------------------------------------
 - refactor rules to use jinja2 as templating system
+- allow to configure time interval in `time_filter`
 
 2019-10-09; 0.1.4;
 --------------------------------------------
