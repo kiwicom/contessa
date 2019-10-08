@@ -25,7 +25,7 @@ def test_compose_kwargs_sql_executor_time_filter(dummy_contessa, ctx):
     computed_datetime = (ctx["task_ts"] - timedelta(days=30)).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
-    expected = f"created_at >= '{computed_datetime} UTC'::timestamp"
+    expected = f"created_at BETWEEN '{computed_datetime} UTC'::timestamptz AND '{ctx['task_ts']} UTC'::timestamptz"
     assert time_filter == expected, "time_filter is string"
 
     rule = NotNullRule("not_null", "src", time_filter=[{"column": "created_at"}])
@@ -33,7 +33,7 @@ def test_compose_kwargs_sql_executor_time_filter(dummy_contessa, ctx):
     computed_datetime = (ctx["task_ts"] - timedelta(days=30)).strftime(
         "%Y-%m-%d %H:%M:%S"
     )
-    expected = f"created_at >= '{computed_datetime} UTC'::timestamp"
+    expected = f"created_at BETWEEN '{computed_datetime} UTC'::timestamptz AND '{ctx['task_ts']} UTC'::timestamptz"
     assert time_filter == expected, "time_filter has only column"
 
     rule = NotNullRule(
@@ -52,8 +52,8 @@ def test_compose_kwargs_sql_executor_time_filter(dummy_contessa, ctx):
         "%Y-%m-%d %H:%M:%S"
     )
     expected = (
-        f"created_at >= '{computed_created} UTC'::timestamp AND "
-        f"updated_at >= '{computed_updated} UTC'::timestamp"
+        f"created_at BETWEEN '{computed_created} UTC'::timestamptz AND '{ctx['task_ts']} UTC'::timestamptz AND "
+        f"updated_at BETWEEN '{computed_updated} UTC'::timestamptz AND '{ctx['task_ts']} UTC'::timestamptz"
     )
     assert time_filter == expected, "time_filter has 2 members"
 
