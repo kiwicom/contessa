@@ -47,9 +47,7 @@ class RuleNormalizer:
             return True
         elif "separate_time_filters" in rule_def:
             if len(rule_def["separate_time_filters"]) <= 1:
-                logging.error(
-                    "Please use `time_filter` for one column, converting for now."
-                )
+                raise ValueError("Please use `time_filter` for one column.")
             return True
         return False
 
@@ -68,10 +66,15 @@ class RuleNormalizer:
     def _split_permutations(permutations, rule_def):
         new_rules = []
         for perm in permutations:
+            # time_filter has to be one of list, str or None
+            if isinstance(perm[1], dict):
+                time_filter = [perm[1]]
+            else:
+                time_filter = perm[1]
             tmp = rule_def.copy()
             tmp["column"] = perm[0]
             tmp.pop("columns", None)
-            tmp["time_filter"] = perm[1]
+            tmp["time_filter"] = time_filter
             tmp.pop("separate_time_filters", None)
             new_rules.append(tmp)
         return new_rules

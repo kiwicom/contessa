@@ -51,15 +51,15 @@ class TestDataQualityOperator(unittest.TestCase):
                     )
                 """,
             f"""
-                    INSERT INTO tmp.{self.table_name}_{self.ts_nodash}
+                    INSERT INTO tmp.{self.tmp_table_name}
                         (src, dst, price, turnover_after_refunds, initial_price, created_at)
                     VALUES
-                        ('BTS', NULL, 1, 100, 11, '2018-09-12T13:00:00'),
+                        ('BTS', NULL, 1, 100, 11, '2018-09-12T11:50:00'),
                         -- this is older than 30 days.
                         -- not in stats when time_filter = `created_at`
-                        (NULL, 'PEK', 33, 1.1, 13, '2018-01-12T13:00:00'),
-                        ('VIE', 'JFK', 4, 5.5, 23.4, '2018-09-11T13:00:00'),
-                        ('VIE', 'VIE', 4, 0.0, 0.0, '2018-09-11T13:00:00')
+                        (NULL, 'PEK', 33, 1.1, 13, '2018-01-12T15:50:00'),
+                        ('VIE', 'JFK', 4, 5.5, 23.4, '2018-09-11T11:50:00'),
+                        ('VIE', 'VIE', 4, 0.0, 0.0, '2018-09-11T11:50:00')
                 """,
             f"""
                 INSERT INTO tmp.{self.table_name}
@@ -141,9 +141,12 @@ class TestDataQualityOperator(unittest.TestCase):
     def test_execute_dst(self):
         sql = """
             SELECT
-              CASE WHEN src = 'BTS' and dst is null THEN false ELSE true END as res
-            from {{ table_fullname }}
-            where created_at between timestamptz '{{task_ts}}' and timestamptz '{{task_ts}}' + interval '1 hour'
+              CASE WHEN src = 'BTS' AND dst is null THEN false ELSE true END as res
+            FROM {{ table_fullname }}
+            WHERE created_at BETWEEN
+                timestamptz '{{task_ts}}' - INTERVAL '1 hour'
+                AND
+                timestamptz '{{task_ts}}' + INTERVAL '1 hour'
         """
         rules = [
             {"name": "not_null", "column": "dst", "time_filter": "created_at"},

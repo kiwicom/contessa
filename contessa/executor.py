@@ -76,15 +76,17 @@ class Executor(metaclass=abc.ABCMeta):
             elif isinstance(rule.time_filter, list):
                 for each in rule.time_filter:
                     filters.append(
-                        {"column": each.get("column"), "days": each.get("days", days)}
+                        {"column": each["column"], "days": each.get("days", days)}
                     )
 
             for each in filters:
+                present = self.context["task_ts"].strftime("%Y-%m-%d %H:%M:%S UTC")
                 past = (
-                    self.context.get("task_ts", datetime.now())
-                    - timedelta(days=each["days"])
+                    self.context["task_ts"] - timedelta(days=each["days"])
                 ).strftime("%Y-%m-%d %H:%M:%S UTC")
-                result.append(f"""{each["column"]} >= '{past}'::timestamp""")
+                result.append(
+                    f"""{each["column"]} BETWEEN '{past}'::timestamptz AND '{present}'::timestamptz"""
+                )
 
         return " AND ".join(result)
 
