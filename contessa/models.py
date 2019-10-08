@@ -85,7 +85,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
             raise ValueError("In results of rule.apply can't be any Null values.")
 
         # todo - add to doc
-        self.task_ts = context.get("task_ts", None) or datetime.now()
+        self.task_ts = context["task_ts"]
         self.attribute = rule.attribute
         self.rule_name = rule.name
         self.rule_description = rule.description
