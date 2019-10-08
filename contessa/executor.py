@@ -28,12 +28,6 @@ class Executor(metaclass=abc.ABCMeta):
             if col in self.date_columns:
                 yield col
 
-    def get_context(self):
-        """
-        Hook for adding something to context specific for Executor. (don't forget to call super)
-        """
-        return self.context
-
     @property
     def raw_df(self):
         """

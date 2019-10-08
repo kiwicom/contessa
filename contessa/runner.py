@@ -49,7 +49,6 @@ class ContessaRunner:
     def get_context(check_table: Table, context: Optional[Dict] = None) -> Dict:
         """
         Construct context to pass to executors. User context overrides defaults.
-        note: could be overridden in Executor.get_context() method.
         """
         ctx_defaults = {
             "table_fullname": check_table.fullname,

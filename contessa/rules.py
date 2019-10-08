@@ -9,14 +9,14 @@ from contessa.executor import get_executor, SqlExecutor
 class SqlRule(Rule):
     """
     Rule that executes a custom sql that is custom written.
-    It can use context from Executor.get_context
+    It can use context from Executor.
     """
 
     executor_cls = SqlExecutor
 
     def get_sql_parameters(self):
         e = get_executor(self.__class__)
-        return e.get_context()
+        return e.context
 
     @property
     def sql(self):
