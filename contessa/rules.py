@@ -81,7 +81,7 @@ class OneColumnRuleSQL(SqlRule):
     executor_cls = SqlExecutor
 
     def __init__(self, name, column, description, **kwargs):
-        if description == '' or description == None:
+        if description == '' or description is None:
             raise TypeError('Description is mandatory')
         super().__init__(name, description = description, **kwargs)
         self.column = column
