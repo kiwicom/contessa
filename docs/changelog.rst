@@ -5,6 +5,10 @@ CONTESSA CHANGELOG
 --------------------------------------------
 - refactor rules to use jinja2 as templating system
 
+2019-10-09; 0.1.4;
+--------------------------------------------
+- rules description is mandatory and can be used in all rules
+
 
 2019-09-04; 0.1.3;
 --------------------------------------------
