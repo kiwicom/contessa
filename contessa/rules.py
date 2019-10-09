@@ -81,9 +81,9 @@ class OneColumnRuleSQL(SqlRule):
     executor_cls = SqlExecutor
 
     def __init__(self, name, column, description, **kwargs):
-        if description == '' or description is None:
-            raise TypeError('Description is mandatory')
-        super().__init__(name, description = description, **kwargs)
+        if description == "" or description is None:
+            raise TypeError("Description is mandatory")
+        super().__init__(name, description=description, **kwargs)
         self.column = column
 
     @property
@@ -107,16 +107,13 @@ class CustomSqlRule(SqlRule):
         super().__init__(name, description=description, **kwargs)
         self.custom_sql = sql
 
-
-
     @property
     def sql(self):
         return self.custom_sql
 
 
 class NotNullRule(OneColumnRuleSQL):
-
-    def __init__(self, name, column, description = "True when data is null.", **kwargs):
+    def __init__(self, name, column, description="True when data is null.", **kwargs):
         super().__init__(name, column, description=description, **kwargs)
 
     @property
@@ -127,10 +124,15 @@ class NotNullRule(OneColumnRuleSQL):
 
 
 class GtRule(OneColumnRuleSQL):
-
-
-    def __init__(self, name, column, value, description = "True when data is greater than input value.", **kwargs):
-        super().__init__(name, column, description = description, **kwargs)
+    def __init__(
+        self,
+        name,
+        column,
+        value,
+        description="True when data is greater than input value.",
+        **kwargs,
+    ):
+        super().__init__(name, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -141,10 +143,15 @@ class GtRule(OneColumnRuleSQL):
 
 
 class GteRule(OneColumnRuleSQL):
-
-
-    def __init__(self, name, column, value, description = "True when data is greater or even than input value.", **kwargs):
-        super().__init__(name, column, description = description, **kwargs)
+    def __init__(
+        self,
+        name,
+        column,
+        value,
+        description="True when data is greater or even than input value.",
+        **kwargs,
+    ):
+        super().__init__(name, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -155,10 +162,15 @@ class GteRule(OneColumnRuleSQL):
 
 
 class NotRule(OneColumnRuleSQL):
-
-
-    def __init__(self, name, column, value, description = "True when data is not input value.", **kwargs):
-        super().__init__(name, column, description = description, **kwargs)
+    def __init__(
+        self,
+        name,
+        column,
+        value,
+        description="True when data is not input value.",
+        **kwargs,
+    ):
+        super().__init__(name, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -170,10 +182,15 @@ class NotRule(OneColumnRuleSQL):
 
 
 class LtRule(OneColumnRuleSQL):
-
-
-    def __init__(self, name, column, value, description = "True when data is less than input value.",  **kwargs):
-        super().__init__(name, column, description = description, **kwargs)
+    def __init__(
+        self,
+        name,
+        column,
+        value,
+        description="True when data is less than input value.",
+        **kwargs,
+    ):
+        super().__init__(name, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -184,10 +201,15 @@ class LtRule(OneColumnRuleSQL):
 
 
 class LteRule(OneColumnRuleSQL):
-
-
-    def __init__(self, name, column, value, description = "True when data is less or even than input value.", **kwargs):
-        super().__init__(name, column, description = description, **kwargs)
+    def __init__(
+        self,
+        name,
+        column,
+        value,
+        description="True when data is less or even than input value.",
+        **kwargs,
+    ):
+        super().__init__(name, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -198,10 +220,15 @@ class LteRule(OneColumnRuleSQL):
 
 
 class EqRule(OneColumnRuleSQL):
-
-
-    def __init__(self, name, column, value, description = "True when data is the same as input value.", **kwargs):
-        super().__init__(name, column, description = description, **kwargs)
+    def __init__(
+        self,
+        name,
+        column,
+        value,
+        description="True when data is the same as input value.",
+        **kwargs,
+    ):
+        super().__init__(name, column, description=description, **kwargs)
         self.value = value
 
     @property

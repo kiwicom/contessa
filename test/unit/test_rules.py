@@ -14,7 +14,7 @@ def test_rule_context_formatted_in_where():
     r = TestRule(
         name="test_rule",
         condition="created_at >= '{{ts_nodash}}'::timestamptz - interval '10 minutes'",
-        description ="Greater than 0 when bags <> 0"
+        description="Greater than 0 when bags <> 0",
     )
     check_table = Table("raw", "table")
     context = ContessaRunner.get_context(check_table, {"ts_nodash": "20190101T000000"})
