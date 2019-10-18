@@ -137,6 +137,71 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         return f"Rule ({self.attribute} - {self.rule_name} - {self.task_ts})"
 
 
+class ConsistencyCheck(AbstractConcreteBase, DQBase):
+    """
+    Representation of abstract consistency check table.
+    """
+
+    __abstract__ = True
+
+    id = Column(BIGINT, primary_key=True)
+    type = Column(TEXT)
+    check_name = Column(TEXT)
+    check_description = Column(TEXT)
+    left_table = Column(TEXT)
+    right_table = Column(TEXT)
+
+    status = Column(TEXT)
+    time_filter = Column(TEXT)
+    task_ts = Column(TIMESTAMP(timezone=True), nullable=False, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=text("NOW()"),
+        nullable=False,
+        index=True,
+    )
+
+    @declared_attr
+    def __table_args__(cls):
+        """
+        Concrete classes derived from this abstract one should have unique check among the columns
+        that below. But the constraint needs to have unique name, therefore we are using
+        @declared_attr here to construct name of the constraint using its table name.
+        :return:
+        """
+        return (
+            UniqueConstraint(
+                "type",
+                "check_name",
+                "task_ts",
+                "time_filter",
+                name=f"{cls.__tablename__}_unique_consistency_check",
+            ),
+        )
+
+    def init_row(
+        self,
+        check: Dict,
+        status: str,
+        left_table_name: str,
+        right_table_name: str,
+        context: Dict = None,
+    ):
+        """
+        Set result to consistency check object.
+        """
+        # todo - add to doc
+        self.task_ts = context["task_ts"]
+        self.check_name = check["name"]
+        self.check_description = check["description"]
+        self.left_table = left_table_name
+        self.right_table = right_table_name
+        self.status = status
+
+    def __repr__(self):
+        return f"Rule ({self.type} - {self.check_name} - {self.task_ts})"
+
+
 # todo - maybe create also CheckTable
 class Table:
     def __init__(self, schema_name, table_name):
@@ -174,7 +239,7 @@ class ResultTable(Table):
         return camel_case[0].title() + camel_case[1:]
 
 
-def create_default_quality_check_class(result_table: ResultTable):
+def create_default_check_class(result_table: ResultTable, check_type: str = "quality"):
     """
     This will construct type/class (not object) that will have special name that its prefixed
     with its table. It's better because sqlalchemy can yell somethings if we would use same class
@@ -196,7 +261,11 @@ def create_default_quality_check_class(result_table: ResultTable):
             "concrete": True,
         },
     }
-    cls = type(result_table.clsname, (QualityCheck,), attributedict)
+    if check_type == "quality":
+        check_class = QualityCheck
+    else:
+        check_class = ConsistencyCheck
+    cls = type(result_table.clsname, (check_class,), attributedict)
     cls.metadata.schema = result_table.schema_name
     cls.__table__.schema = result_table.schema_name
     return cls
