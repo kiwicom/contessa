@@ -8,6 +8,7 @@ Contessa Changelog
 - add docs - https://contessa.readthedocs.io/en/latest/
 - add debug sql prints for rules
 - add BigQuery support
+- add ConsistencyChecker, supports rowcount comparison
 
 
 2019-10-09; 0.1.4;
