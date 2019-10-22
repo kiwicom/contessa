@@ -67,3 +67,5 @@ How to add docs
 
 It will make html files with sphinx and serve a local webserver so that you can check it out.
 It should also reload it :)
+
+NOTE: If it doesn't work, build html manually. ``cd docs && make html``
