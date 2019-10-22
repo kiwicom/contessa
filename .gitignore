@@ -201,3 +201,6 @@ airflow.db
 
 ####=== Docker ===####
 docker-compose.override.yml
+
+# sphinx
+.doctree
