@@ -1,4 +1,4 @@
-CONTESSA CHANGELOG
+Contessa Changelog
 ============================================
 
 2019-XX-XX; 0.2.0;
