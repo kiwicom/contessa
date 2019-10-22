@@ -14,6 +14,7 @@ Index
 .. toctree::
    :maxdepth: 2
 
+   quick_start
    runner
    rules
 

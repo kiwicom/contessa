@@ -19,7 +19,6 @@ Format
 .. code-block:: json
 
     {
-        ...
         "time_filter": [
             {"column": "a", "days": 10},
             {"column": "b", "days": 24},
@@ -37,8 +36,7 @@ all conditions at the same time will be eligible for further checking.
 Miscellaneous
 ````````````````````````
 
- - For backward-compatibility is also supported simple format, which defines only name of the column. In this case default
-(30) for *days* is used.
+ - For backward-compatibility is also supported simple format, which defines only name of the column. In this case default (30) for *days* is used.
 
 .. code-block:: json
 
@@ -47,13 +45,12 @@ Miscellaneous
     }
 
 - Parallel to **columns** shortcut for defining multiple rules at once, parameter **separate_time_filters** is available.
-- Each one will be used separately. In case both *separate_time_filters* and *time_filter* are defined, only
-*separate_time_filters* would be considered.
+- Each one will be used separately. In case both *separate_time_filters* and *time_filter* are defined, only *separate_time_filters* would be considered.
 
 .. code-block:: json
 
     {
-        "separate_time_filters": [{"column": "c"}, {"column": "d"}]}
+        "separate_time_filters": [{"column": "c"}, {"column": "d"}]
     }
 
 Context
@@ -64,8 +61,8 @@ Each run has its own context, mostly used for templating the final sql. This is 
 .. code-block:: json
 
     {
-    	"table_fullname" : "public.my_cool_table"
-    	"task_ts": passed by client or datetime.now()
+    	"table_fullname" : "public.my_cool_table",
+    	"task_ts": "passed by client or datetime.now()"
     }
 
 

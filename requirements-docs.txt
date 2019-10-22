@@ -22,6 +22,7 @@ requests==2.22.0          # via sphinx
 six==1.12.0               # via livereload, packaging
 snowballstemmer==2.0.0    # via sphinx
 sphinx-autodoc-typehints==1.8.0
+sphinx-rtd-theme==0.4.3
 sphinx==2.2.0
 sphinxcontrib-applehelp==1.0.1  # via sphinx
 sphinxcontrib-devhelp==1.0.1  # via sphinx
