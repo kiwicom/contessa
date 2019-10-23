@@ -1,29 +1,72 @@
+..  _rules:
+
 Rules
 ==============================
 
-Accuracy, Completeness and Confornmity
+Usage of any generic or custom:
+
+.. code-block:: python
+
+  from contessa import GT, SQL, NOT_NULL
+
+  rules = [{
+    "name": NOT_NULL,
+    "columns": ["a", "b", "c"],
+  }, {
+    "name": GT,
+    "value": 0,
+    "columns": ["a", "b", "c"],
+    "condition": "status IN ('closed', 'refunded')", # optional thingy in rules
+  }, {
+    "name": SQL,
+    "sql": "SELECT CASE WHEN <something-cool> THEN false ELSE true END FROM {{table_fullname}}",
+    "description": "more coolness",
+    # condition doesnt make sense here :)
+  }]
+
+.. tip::
+
+	value can be another col, e.g. - ``{"name": NOT, "column": "src", "value": "dst"}``
+
+Below you can check what rules we are supporting.
+
+Accuracy, Completeness and Conformity
 --------------------------------------------
 
 .. autoclass:: contessa.rules.NotNullRule
    :no-undoc-members:
 
+   ``from contessa import NOT_NULL``
+
 .. autoclass:: contessa.rules.GtRule
    :no-undoc-members:
+
+   ``from contessa import GT``
 
 .. autoclass:: contessa.rules.GteRule
    :no-undoc-members:
 
+   ``from contessa import GTE``
+
 .. autoclass:: contessa.rules.NotRule
    :no-undoc-members:
+
+   ``from contessa import NOT``
 
 .. autoclass:: contessa.rules.LtRule
    :no-undoc-members:
 
+   ``from contessa import LT``
+
 .. autoclass:: contessa.rules.LteRule
    :no-undoc-members:
 
+   ``from contessa import LTE``
+
 .. autoclass:: contessa.rules.EqRule
    :no-undoc-members:
+
+   ``from contessa import EQ``
 
 
 Custom Rules
@@ -31,6 +74,8 @@ Custom Rules
 
 .. autoclass:: contessa.rules.CustomSqlRule
    :no-undoc-members:
+
+   ``from contessa import SQL``
 
 
 Consistency

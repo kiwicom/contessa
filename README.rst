@@ -1,3 +1,5 @@
+.. index-start
+
 Contessa
 ============================
 
@@ -13,7 +15,35 @@ Contessa
    :target: https://opensource.org/licenses/MIT
 
 
-Data Quality Framework
+Hello, welcome to Contessa!
+
+Contessa is a **Data Quality** library that provides you easy way to define, execute and
+store quality rules for your data.
+
+Instead of writing a lot of sql queries that looks almost exactly the same, we're aiming for more
+pragmatic approach - define rules programatically. This will enable much more flexibility for user and also
+for us as a creators of the lib.
+
+We try to incrementally implement new Rules that should reflect Data Quality domain. From start those are simple
+rules like - NOT_NULL, GT (greater than) etc. We want to built on this simple rules and create more complex checks to create Data Quality checkers out-of-the-box.
+
+**Our goals for with this package is to:**
+
+- be database agnostic (to the point it is doable), so you will define checks against any database (e.g. mysql vs. postgres) in the same way
+- automatize data quality results - from postgres table to Datadog dashboard
+- programmatic approach to data-quality definition, which leads to:
+
+  - dynamic compoistion of rules in simple script using db or any 3rd party tool - e.g. take all tables, create NOT_NULl rule for all of them for each integer column
+
+  - user can use special rules for data if needed, if not he can go with generic solutions
+
+  - automatizable testable parts of definitions when needed
+
+- easier maintanence when number of checks scales too fast :)
+
+Full docs_ here
+
+.. _docs: https://contessa.readthedocs.io/en/latest/
 
 Quick Example
 ---------------------------
@@ -48,6 +78,10 @@ Quick Example
         check_table={"schema_name": "public", "table_name": "bookings"},
         result_table={"schema_name": "dq", "table_name": "my_table"},
     )
+
+This will result in table **dq.quality_check_my_table**. For model see :ref:`quality_check`
+
+.. index-end
 
 How to run tests
 ---------------------------

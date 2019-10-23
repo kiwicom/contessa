@@ -3,7 +3,6 @@
 QualityCheck
 ==============================
 
-
 .. code-block:: python
 
     class QualityCheck:
