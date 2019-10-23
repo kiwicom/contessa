@@ -4,7 +4,7 @@ setup(
     name="contessa",
     version="0.1.3",
     description="Data-quality framework",
-    long_description=open("README.md", "r").read(),
+    long_description=open("README.rst", "r").read(),
     long_description_content_type="text/markdown",
     author="Mario Hunka",
     author_email="mario.hunka@kiwi.com",
