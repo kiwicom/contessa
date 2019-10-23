@@ -54,7 +54,7 @@ Miscellaneous
     }
 
 Context
-````````````````````````
+-------------------------
 
 Each run has its own context, mostly used for templating the final sql. This is its context: 
 
@@ -69,4 +69,4 @@ Each run has its own context, mostly used for templating the final sql. This is 
 Postgres result table
 -------------------------
 
-# todo 
+# todo
