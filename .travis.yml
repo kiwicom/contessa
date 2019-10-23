@@ -5,6 +5,8 @@ jobs:
   include:
   - stage: tests
     script: make test $TRAVIS_BUILD_DIR/test/
+  - stage: black
+    script: make black
   - stage: deploy pypi test
     deploy:
       provider: pypi

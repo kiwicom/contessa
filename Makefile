@@ -11,4 +11,4 @@ test:
 	docker-compose -f docker-compose.test.yml run --rm app-test pytest ${args}
 
 black:
-		docker run --rm -it -v $(curr_dir)/test:/tmp/test -v $(curr_dir)/contessa:/tmp/contessa kiwicom/black:19.3b0 black /tmp/test /tmp/contessa
+	docker run --rm -it -v $(curr_dir)/test:/tmp/test -v $(curr_dir)/contessa:/tmp/contessa kiwicom/black:19.3b0 black /tmp/test /tmp/contessa
