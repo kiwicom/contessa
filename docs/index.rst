@@ -1,12 +1,6 @@
-Contessa
-==============================
-
-Hello, welcome to Contessa documentation!
-
-Quick Example
-------------------------
-
-.. include:: example.rst
+.. include:: ../README.rst
+  :start-after: index-start
+  :end-before: index-end
 
 Index
 ------------------------
@@ -15,9 +9,9 @@ Index
    :maxdepth: 2
 
    quick_start
-   runner
    rules
 
    features
+   quality_check
 
    changelog
