@@ -1,16 +1,24 @@
 language: python
 python:
-- '3.7'
+- "3.7"
 jobs:
   include:
-  - stage: unit tests
+  - stage: tests
     script: make test $TRAVIS_BUILD_DIR/test/
   - stage: deploy pypi test
     deploy:
       provider: pypi
-      user: maroshmka
-      password:
-        secure: FJ9R6e2ERavklo8v6VDFIPr66wtrryi2BY80g9Ndi1gTVffAHCcpKq/sC1Pp8HiSUVlsZ8ORC0AO40Q7R6v5l7ZbvTgdhwkEhrrZ993dhbcZQCDBswx00UGQF1jZdx8u8k9G1ZAE60+9h/RS2PMomPvOy0jzG/FTifu/GvuymsdobunFOe93R+FhXM4kLCfZ4fZXbin8YT2C1O9txrxmxvFOwfcXaKhFDOXcvXCmJwRpgia9wJO9CD8rpyBbRTOsDG4z2VjDSh0Q8A+0cxcMmV594oKyyva1w/smCVCefMBgCB2eVqB1uXf6jNIPK4U1vL6Mzv4Hq9nIi8cSt84aUUUBWinitVbYNW18e2NBb/CobrzXGwOvWuMgrr4Z4n4RL1hmTFAnu/mT0eH+05g0oj8YuI8lwdEQ4ahbpPdG52vuv++J11mXD19HWay11SOB4N9+F1fopoSFDBfDDW+3nKTf5RxdEyZawAubsoiWTd2NMBsxrXgiMVRxdrrPK6sQlW5y5nOCVV7ACxuPs8A15rp+eSdCKM9n7tmScAUVIU4mPnERKf7i5mbWhmxGtDDxZZ8/h1oBxXB2gmTU6Bqk/gyZz0Waq+Z1NQrRVlvO/qrQ59QS+JpnXHVElSxcX5abilc1+4qfVKfF0n7IF30GRPxHxdMVYwT0hN0ucgjKHGg=
+      user: $PYPITEST_USERNAME
+      password: $PYPITEST_PASSWORD
       server: https://test.pypi.org/legacy/
-      distributions: dist bdist_wheel
+      distributions: sdist bdist_wheel
+      skip_existing: true
+  - stage: deploy pypi
+    deploy:
+      provider: pypi
+      user: $PYPI_USERNAME
+      password: $PYPI_PASSWORD
+      distributions: sdist bdist_wheel
+      skip_existing: true
+
 script: true
