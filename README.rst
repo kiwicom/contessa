@@ -1,9 +1,17 @@
 Contessa
 ============================
 
-|docs-badge|
+|docs-badge| |build-badge| |pypi-badge| |license-badge|
 
 .. |docs-badge| image:: https://readthedocs.org/projects/contessa/badge/?version=latest
+   :target: https://contessa.readthedocs.io/en/latest/
+.. |pypi-badge| image:: https://badge.fury.io/py/contessa.svg
+   :target:  https://pypi.org/project/contessa/
+.. |build-badge| image:: https://travis-ci.org/kiwicom/contessa.svg?branch=master
+   :target: https://travis-ci.org/kiwicom/contessa
+.. |license-badge| image:: https://img.shields.io/pypi/l/schemathesis.svg
+   :target: https://opensource.org/licenses/MIT
+
 
 Data Quality Framework
 
