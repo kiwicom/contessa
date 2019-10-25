@@ -30,15 +30,15 @@ def df():
     "rule, expected",
     [
         (
-            GtRule("gt", "value", "value2"),
+            GtRule("gt_name", "gt", "value", "value2"),
             [False, False, True, False, False],
         ),  # test another col
-        (NotNullRule("not_null", "value"), [True, True, True, False, True]),
-        (GteRule("gte", "value", 4), [False, True, True, False, True]),
-        (NotRule("not", "value", 4), [True, False, True, True, False]),
-        (LtRule("lt", "value", 4), [True, False, False, False, False]),
-        (LteRule("lte", "value", 4), [True, True, False, False, True]),
-        (EqRule("eq", "value", 4), [False, True, False, False, True]),
+        (NotNullRule("not_null_name", "not_null", "value"), [True, True, True, False, True]),
+        (GteRule("gte_name", "gte", "value", 4), [False, True, True, False, True]),
+        (NotRule("not_name" ,"not", "value", 4), [True, False, True, True, False]),
+        (LtRule("lt_name", "lt", "value", 4), [True, False, False, False, False]),
+        (LteRule("lte_name", "lte", "value", 4), [True, True, False, False, True]),
+        (EqRule("eq_name", "eq", "value", 4), [False, True, False, False, True]),
     ],
 )
 def test_one_column_rule_sql(rule, expected, conn, ctx):
@@ -67,18 +67,18 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
 @pytest.mark.parametrize(
     "rule, expected",
     [
-        (GtRule("gt", "value", 4, condition="conditional is TRUE"), [False, False]),
+        (GtRule("gt_name", "gt", "value", 4, condition="conditional is TRUE"), [False, False]),
         (
-            NotNullRule("not_null", "value", condition="conditional is TRUE"),
+            NotNullRule("not_null_name", "not_null", "value", condition="conditional is TRUE"),
             [True, True],
         ),
-        (GteRule("gte", "value", 4, condition="conditional is TRUE"), [False, True]),
-        (NotRule("not", "value", 4, condition="conditional is TRUE"), [True, False]),
-        (LtRule("lt", "value", 4, condition="conditional is TRUE"), [True, False]),
-        (LteRule("lte", "value", 4, condition="conditional is TRUE"), [True, True]),
-        (EqRule("eq", "value", 4, condition="conditional is TRUE"), [False, True]),
+        (GteRule("gte_name", "gte", "value", 4, condition="conditional is TRUE"), [False, True]),
+        (NotRule("not_name", "not", "value", 4, condition="conditional is TRUE"), [True, False]),
+        (LtRule("lt_name", "lt", "value", 4, condition="conditional is TRUE"), [True, False]),
+        (LteRule("lte_name", "lte", "value", 4, condition="conditional is TRUE"), [True, True]),
+        (EqRule("eq_name", "eq", "value", 4, condition="conditional is TRUE"), [False, True]),
         (
-            LteRule("lte", "date", "now()", condition="conditional is FALSE"),
+            LteRule("lte_name", "lte", "date", "now()", condition="conditional is FALSE"),
             [False, False, True],
         ),
     ],
@@ -110,10 +110,10 @@ def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
 @pytest.mark.parametrize(
     "rule, expected",
     [
-        (NotRule("not", "value1", "value2"), [True, False, False]),
-        (LteRule("lte", "value4", "value1"), [True, False, True]),
-        (EqRule("eq", "value1", "value3"), [True, True, True]),
-        (GtRule("gte", "value2", "value3"), [True, False, False]),
+        (NotRule("not_name", "not", "value1", "value2"), [True, False, False]),
+        (LteRule("lte_name", "lte", "value4", "value1"), [True, False, True]),
+        (EqRule("eq_name", "eq", "value1", "value3"), [True, True, True]),
+        (GtRule("gte_name", "gte", "value2", "value3"), [True, False, False]),
     ],
 )
 def test_cmp_with_other_col_rules(rule, expected, conn, ctx):
@@ -164,7 +164,7 @@ def test_sql_apply(conn, ctx):
         src = 'aaa'
         from {{ table_fullname }}
     """
-    rule = CustomSqlRule("sql_test", sql, "example description")
+    rule = CustomSqlRule("sql_test_name", "sql_test", sql, "example description")
     results = rule.apply(conn)
     expected = pd.Series([False, True])
     assert list(expected) == list(results)
@@ -195,7 +195,7 @@ def test_sql_apply_extra_ctx(conn, ctx):
         from {{ dst_table }}
         where created between timestamptz '{{task_ts}}' and timestamptz '{{task_ts}}' + interval '60 seconds'
     """
-    rule = CustomSqlRule("sql_test", sql, "example description")
+    rule = CustomSqlRule("sql_test_name", "sql_test", sql, "example description")
     results = rule.apply(conn)
     expected = pd.Series([False, True])
     assert list(expected) == list(results)
@@ -206,8 +206,8 @@ def test_new_rule(conn, ctx):
     class CountSqlRule(SqlRule):
         executor_cls = SqlExecutor
 
-        def __init__(self, name, count, description=None, **kwargs):
-            super().__init__(name, description=description, **kwargs)
+        def __init__(self, name, type, count, description=None, **kwargs):
+            super().__init__(name, type, description=description, **kwargs)
             self.count = count
 
         def get_sql_parameters(self):
@@ -238,12 +238,12 @@ def test_new_rule(conn, ctx):
     refresh_executors(
         Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
     )
-    rule = CountSqlRule("count", 2)
+    rule = CountSqlRule("count_name", "count", 2)
     results = rule.apply(conn)
     expected = pd.Series([True])
     assert list(expected) == list(results)
 
-    rule = CountSqlRule("count", 2, condition="a = 'bts'")
+    rule = CountSqlRule("count_name", "count", 2, condition="a = 'bts'")
     results = rule.apply(conn)
     expected = pd.Series([False])
     assert list(expected) == list(results)

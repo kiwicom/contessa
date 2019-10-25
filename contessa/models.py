@@ -36,6 +36,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
     id = Column(BIGINT, primary_key=True)
     attribute = Column(TEXT)
     rule_name = Column(TEXT)
+    rule_type = Column(TEXT)
     rule_description = Column(TEXT)
     total_records = Column(INTEGER)
 
@@ -69,6 +70,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
             UniqueConstraint(
                 "attribute",
                 "rule_name",
+                "rule_type",
                 "task_ts",
                 "time_filter",
                 name=f"{cls.__tablename__}_unique_quality_check",
@@ -88,6 +90,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         self.task_ts = context["task_ts"]
         self.attribute = rule.attribute
         self.rule_name = rule.name
+        self.rule_type = rule.type
         self.rule_description = rule.description
 
         self.total_records = results.shape[0]
@@ -134,7 +137,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         self.median_30_day_passed = median(passed) if passed else None
 
     def __repr__(self):
-        return f"Rule ({self.attribute} - {self.rule_name} - {self.task_ts})"
+        return f"Rule ({self.attribute} - {self.rule_name} - {self.rule_type} - {self.task_ts})"
 
 
 # todo - maybe create also CheckTable
