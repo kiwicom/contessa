@@ -8,16 +8,16 @@ class RuleNormalizer:
     one time_filter with provided where condition.
 
     Example:
-        {'name': 'not_null', 'columns': ['a', 'b', 'c'], 'separate_time_filters': ['c', 'u'], 'condition': 'd is TRUE'}
+        {'type': 'not_null', 'columns': ['a', 'b', 'c'], 'separate_time_filters': ['c', 'u'], 'condition': 'd is TRUE'}
 
         will be transformed to
 
-        {'name': 'not_null', 'column': 'a', 'time_filter': 'c', 'condition': 'd is TRUE'}
-        {'name': 'not_null', 'column': 'b', 'time_filter': 'c', 'condition': 'd is TRUE'}
-        {'name': 'not_null', 'column': 'c', 'time_filter': 'c', 'condition': 'd is TRUE'}
-        {'name': 'not_null', 'column': 'a', 'time_filter': 'u', 'condition': 'd is TRUE'}
-        {'name': 'not_null', 'column': 'b', 'time_filter': 'u', 'condition': 'd is TRUE'}
-        {'name': 'not_null', 'column': 'c', 'time_filter': 'u', 'condition': 'd is TRUE'}
+        {'type': 'not_null', 'column': 'a', 'time_filter': 'c', 'condition': 'd is TRUE'}
+        {'type': 'not_null', 'column': 'b', 'time_filter': 'c', 'condition': 'd is TRUE'}
+        {'type': 'not_null', 'column': 'c', 'time_filter': 'c', 'condition': 'd is TRUE'}
+        {'type': 'not_null', 'column': 'a', 'time_filter': 'u', 'condition': 'd is TRUE'}
+        {'type': 'not_null', 'column': 'b', 'time_filter': 'u', 'condition': 'd is TRUE'}
+        {'type': 'not_null', 'column': 'c', 'time_filter': 'u', 'condition': 'd is TRUE'}
 
     This class should define what we can support as an input to be able to make Rule classes
     from it. Currently it supports:

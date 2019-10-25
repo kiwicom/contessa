@@ -96,10 +96,10 @@ class TestDataQualityOperator(unittest.TestCase):
             from {{ table_fullname }}
         """
         rules = [
-            {"name": "not_null", "column": "dst", "time_filter": "created_at"},
-            {"name": "gt", "column": "price", "value": 10, "time_filter": "created_at"},
-            {"name": "sql", "sql": sql, "description": "test sql rule"},
-            {"name": "not", "column": "src", "value": "dst"},
+            {"type": "not_null", "column": "dst", "time_filter": "created_at"},
+            {"type": "gt", "column": "price", "value": 10, "time_filter": "created_at"},
+            {"type": "sql", "sql": sql, "description": "test sql rule"},
+            {"type": "not", "column": "src", "value": "dst"},
         ]
         self.contessa_runner.run(
             check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
@@ -149,8 +149,8 @@ class TestDataQualityOperator(unittest.TestCase):
                 timestamptz '{{task_ts}}' + INTERVAL '1 hour'
         """
         rules = [
-            {"name": "not_null", "column": "dst", "time_filter": "created_at"},
-            {"name": "sql", "sql": sql, "description": "test sql rule"},
+            {"type": "not_null", "column": "dst", "time_filter": "created_at"},
+            {"type": "sql", "sql": sql, "description": "test sql rule"},
         ]
         self.contessa_runner.run(
             check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
@@ -179,7 +179,7 @@ class TestDataQualityOperator(unittest.TestCase):
         self.assertEqual(sql_rule["attribute"], None)
 
     def test_result_table_without_prefix(self):
-        rules = [{"name": "not_null", "column": "dst", "time_filter": "created_at"}]
+        rules = [{"type": "not_null", "column": "dst", "time_filter": "created_at"}]
         self.contessa_runner.run(
             check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
             result_table={
@@ -198,7 +198,7 @@ class TestDataQualityOperator(unittest.TestCase):
         self.assertEqual(rows.shape[0], 1)
 
     def test_different_schema(self):
-        rules = [{"name": "not_null", "column": "dst", "time_filter": "created_at"}]
+        rules = [{"type": "not_null", "column": "dst", "time_filter": "created_at"}]
         self.contessa_runner.run(
             check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
             result_table={"schema_name": "hello", "table_name": "abcde"},

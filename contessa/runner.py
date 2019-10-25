@@ -129,11 +129,11 @@ class ContessaRunner:
 
     def pick_rule_cls(self, rule_def):
         """
-        Get rule class based on its name that was input by user.
+        Get rule class based on its type that was input by user.
         :param rule_def: dict
         :return: Rule class
         """
-        return get_rule_cls(rule_def["name"])
+        return get_rule_cls(rule_def["type"])
 
     def get_quality_check_class(self, result_table: ResultTable):
         """

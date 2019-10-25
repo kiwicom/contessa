@@ -21,16 +21,17 @@ Quick Example
 
     RULES = [
         {
-            "name": NOT_NULL,
+            "name" : "Status and market null check"
+            "type": NOT_NULL,
             "columns": ["status", "market", "src", "dst"], 
         },
         {
-            "name": GT,
+            "type": GT,
             "value": 0,
             "columns": ["initial_price", "turnover_before_refunds", ],
         },
         {
-            "name": SQL,
+            "type": SQL,
             "sql": no_bags_sql,
             "description": "No bags booking should have bags = 0",
         },

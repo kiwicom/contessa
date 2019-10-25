@@ -6,7 +6,7 @@ from contessa.rules import GtRule, NotNullRule
 
 def test_build_rules(dummy_contessa):
     rules = [
-        {"name": "not_null", "columns": ["a", "b", "c"], "time_filter": "created_at"}
+        {"type": "not_null", "columns": ["a", "b", "c"], "time_filter": "created_at"}
     ]
     normalized_rules = dummy_contessa.normalize_rules(rules)
     rules = dummy_contessa.build_rules(normalized_rules)
@@ -23,7 +23,7 @@ def test_build_rules(dummy_contessa):
 
 @pytest.mark.parametrize(
     "rule_def, rule_cls",
-    [({"name": "not_null"}, NotNullRule), ({"name": "gt"}, GtRule)],
+    [({"type": "not_null"}, NotNullRule), ({"type": "gt"}, GtRule)],
 )
 def test_pick_rule(rule_def, rule_cls, dummy_contessa):
     assert dummy_contessa.pick_rule_cls(rule_def) == rule_cls
@@ -32,7 +32,7 @@ def test_pick_rule(rule_def, rule_cls, dummy_contessa):
 def test_not_known_rule(dummy_contessa):
     msg = "I dont know this kind of rule .*"
     with pytest.raises(ValueError, match=msg):
-        dummy_contessa.pick_rule_cls({"name": "aa"})
+        dummy_contessa.pick_rule_cls({"type": "aa"})
 
 
 def test_generic_typ_qc_class(dummy_contessa):
