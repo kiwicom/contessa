@@ -3,12 +3,13 @@
 Features
 =========================
 
-Here are list of features that may come in handy.
+List of features that may come in handy.
+
 
 Time Filter
 -------------------------
 
-If you need to filter data you're checking by date this feature's for you. Each rule can define time interval for selection of suitable rows with parameter **time_filter**. It expects name of the column, optionally also length of the interval in *days* (with default 30).
+If you need to filter data by date this feature's for you. Each rule can define time interval for selection of suitable rows with parameter **time_filter**. It expects name of the column, optionally also length of the interval in *days* (with default 30).
 It is possible to name multiple time-based columns, which will be joined with AND.
 
 Format
@@ -23,14 +24,14 @@ Format
         ],
     }
 
-    # will select data that has `a` column between running time and running time minus 10 days AND `b` column
-    # between running time and running time minus 24 days
+    # this will select data where column `a` is between running time and running time minus 10 days AND 
+    # column `b` column is between running time and running time minus 24 days
     # then it will do the check against those filtered data only
 
 Miscellaneous
 ````````````````````````
 
-- For backward-compatibility is also supported simple format, which defines only name of the column. In this case default (30) for *days* is used.
+- (deprecated) Backward-compatible time filter format defined with column name only. This uses the default 30 days value.
 
 .. code-block:: json
 
@@ -38,9 +39,9 @@ Miscellaneous
         "time_filter": "a"
     }
 
-- Parameter **separate_time_filters** is available.
+- **separate_time_filters** parameter.
 
-  - Each one will be used separately. Meaning, it would actually create X rules and therefore X checks would be done against the data, each filtering the data by passed column. In case both *separate_time_filters* and *time_filter* are defined, only *separate_time_filters* would be considered.
+  - Creates a matrix of rules and filters - i.e. provided rule is applied with each separate_time_filters value separately - acts as a generator of rules. In case both *separate_time_filters* and *time_filter* are defined, only *separate_time_filters* would be considered.
 
 .. code-block:: json
 
@@ -49,8 +50,9 @@ Miscellaneous
         "columns": ["a", "b", "c"],
         "separate_time_filters": [{"column": "c"}, {"column": "d"}]
     }
-    # would check NOT_NULL while filtering by "c" column for last 30 days, write the result.
-    # then apply another rule when it would filter by column "d"
+    # Checks NOT_NULL while filtering by column c and writes the result, 
+    # then repeats the same check while filtering by column d and writes the result as a separate value.
+
 
 Context
 -------------------------
@@ -73,7 +75,7 @@ Quality Check Result
 
 .. quality-check-start
 
-Result will be storred to ``result_table`` in your database. It's model is defined in :ref:`quality_check`.
+Result will be storred to ``result_table`` in your database. Its model is defined in :ref:`quality_check`.
 Table name will be prefixed with ``quality_check``, in this example case the resulting table would be ``dq.quality_check_my_table``.
 
 .. tip::

@@ -1,11 +1,11 @@
 How to write your first check
 ==============================
 
-Basic idea of Contessa is to help you with defining data quality rules
-for any data you have in your database. That can be from the abstact way, e.g. 
+Basic idea of Contessa is to help with defining data quality rules
+for any data in database. Rules can be defined in the abstact way, e.g. 
 ``column_A is not NULL``, to some specific ones, e.g. ``column_A + column_B > column_C*42``.
 
-Let's create a script ``check_bookings.py`` and define first rules we wanna check on the 
+Create a script ``check_bookings.py`` and define first rules we wanna check on the 
 booking table.
 
 Basic Rules
@@ -37,7 +37,7 @@ Basic Rules
     	},
 	]
 
-Let's analyze what's happenning here:
+Explanation:
 
 1. Rules are defined as a list of dicts/objects.
 2. You can group rules together - NOT_NULL has ``columns`` attribute, so you do not need to write
@@ -61,7 +61,7 @@ Yes, definition could be yaml/json (we do not support that now), but now its def
 		"columns": get_cool_cols()
 	})
 
-Which will create rule that checks if all integer columns in table 'abc' are not null. Of course, you can go much wilder, get all tables you have, get all columns in those tables and for each one crates a rule. You could even spawn multiple runners for each dbs you have or want to check.
+Creates a rule that checks if all integer columns in table 'abc' are not null. Of course, you can go much wilder, get all tables you have, get all columns in those tables and for each one crates a rule. You could even spawn multiple runners for each dbs you have or want to check.
 
 .. note::
 	
@@ -110,8 +110,8 @@ Let's look on the ContessaRunner then!
         result_table={"schema_name": "dq", "table_name": "my_table"},
     )
 
-Yop, thats it. Runner goes against 1 db, take your rules, do a bit wrangling with normalization you do not
-need to care about, it creates queries and finally execute them against the ``check_table``. 
+Yop, thats it. Runner runs against 1 db, takes your rules, does a bit wrangling with normalization you do not
+need to care about, creates queries and finally executes them against the ``check_table``. 
 
 Quality Check Result
 --------------------------------------
@@ -123,9 +123,9 @@ Quality Check Result
 Where to look next
 --------------------------------------
 
-Go ahead and test it all with your local db! Then you can schedule a cron to have this results regularly :)
+Go ahead and test it all with your local db! Then you can schedule a cron to get these results regularly:
 
-If you wanna use Contessa even more, you can look at detailed description of:
+If you want to use Contessa even more, you can look at detailed description of:
 
 - Specific :ref:`rules` Contessa provides
 - Special :ref:`features`

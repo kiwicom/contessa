@@ -28,7 +28,8 @@ Usage of any generic or custom:
 
 	value can be another col, e.g. - ``{"name": NOT, "column": "src", "value": "dst"}``
 
-Below you can check what rules we are supporting.
+Check supported rules below.
+
 
 Accuracy, Completeness and Conformity
 --------------------------------------------
