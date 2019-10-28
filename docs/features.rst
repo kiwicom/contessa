@@ -84,3 +84,17 @@ Table name will be prefixed with ``quality_check``, in this example case the res
     to ContessaRunner.
 
 .. quality-check-end
+
+Debug Mode
+-------------------------
+
+Contessa uses python std logging module. For more verbosite enable DEBUG mode. Useful for checking queries Contessa builds.
+
+.. code-block:: python
+
+    # setup logging before using contessa
+    logging.basicConfig(
+     level=logging.DEBUG, 
+     format= ‘[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s’,
+     datefmt=‘%H:%M:%S’
+ )
