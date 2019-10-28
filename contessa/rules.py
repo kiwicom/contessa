@@ -1,3 +1,5 @@
+import logging
+
 import jinja2
 import pandas as pd
 
@@ -63,6 +65,7 @@ class SqlRule(Rule):
         :return: pd.Series
         """
         sql = self.sql_with_where
+        logging.debug(sql)
         results = [
             r for r in conn.get_records(sql)
         ]  # returns generator, so get it to memory
