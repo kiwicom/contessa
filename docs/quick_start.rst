@@ -97,7 +97,7 @@ In Custom Rule, we can see ``{{table_fullname}}`` being used.
 How do I execute this stuff?
 --------------------------------------
 
-We still haven't talked about how it is finally executed, right? And whats the result ?
+We still haven't talked about how it is finally executed, right? And whats the result?
 Let's look on the ContessaRunner then!
 
 .. code-block:: python
@@ -111,7 +111,37 @@ Let's look on the ContessaRunner then!
     )
 
 Yop, thats it. Runner runs against 1 db, takes your rules, does a bit wrangling with normalization you do not
-need to care about, creates queries and finally executes them against the ``check_table``. 
+need to care about, creates queries and finally executes them against the ``check_table``.
+
+You can also run your checks against BigQuery database. All you need is to provide a valid connection string.
+
+.. code-block:: python
+
+	from contessa import ContessaRunner
+	contessa = ContessaRunner("bigquery://some-project/some-dataset?credentials_path=./service-account-key.json")
+
+
+Supported BigQuery connection string parameters are:
+
+.. code-block:: python
+
+    contessa = ContessaRunner(
+        'bigquery://some-project/some-dataset' '?'
+        'credentials_path=/some/path/to.json' '&'
+        'location=some-location' '&'
+        'arraysize=1000' '&'
+        'clustering_fields=a,b,c' '&'
+        'create_disposition=CREATE_IF_NEEDED' '&'
+        'destination=different-project.different-dataset.table' '&'
+        'destination_encryption_configuration=some-configuration' '&'
+        'dry_run=true' '&'
+        'labels=a:b,c:d' '&'
+        'maximum_bytes_billed=1000' '&'
+        'priority=INTERACTIVE' '&'
+        'schema_update_options=ALLOW_FIELD_ADDITION,ALLOW_FIELD_RELAXATION' '&'
+        'use_query_cache=true' '&'
+        'write_disposition=WRITE_APPEND'
+    )
 
 Quality Check Result
 --------------------------------------
