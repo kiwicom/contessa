@@ -7,6 +7,7 @@ Contessa Changelog
 - allow to configure time interval in `time_filter`
 - add docs - https://contessa.readthedocs.io/en/latest/
 - add debug sql prints for rules
+- add BigQuery support
 
 
 2019-10-09; 0.1.4;
