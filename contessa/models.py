@@ -173,6 +173,8 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
             UniqueConstraint(
                 "type",
                 "check_name",
+                "left_table",
+                "right_table",
                 "task_ts",
                 "time_filter",
                 name=f"{cls.__tablename__}_unique_consistency_check",
