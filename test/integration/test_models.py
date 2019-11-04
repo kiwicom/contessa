@@ -3,13 +3,14 @@ import datetime
 from contessa.db import Connector
 from test.conftest import FakedDatetime
 
-from contessa.models import create_default_check_class, ResultTable, DQBase
+from contessa.models import create_default_check_class, ResultTable, DQBase, CheckType
 
 
 def test_quality_check_init_row(rule, results, conn: Connector):
     DQBase.metadata.clear()
     qc = create_default_check_class(
-        ResultTable(schema_name="data_quality", table_name="booking")
+        ResultTable(schema_name="data_quality", table_name="booking"),
+        check_type=CheckType.QUALITY,
     )
     assert qc.__tablename__ == "quality_check_booking"
     assert qc.__name__ == "DataQualityQualityCheckBooking"
@@ -37,7 +38,8 @@ def test_quality_check_init_row(rule, results, conn: Connector):
 def test_set_medians(conn: Connector, monkeypatch):
     DQBase.metadata.clear()
     qc = create_default_check_class(
-        ResultTable(schema_name="data_quality", table_name="t")
+        ResultTable(schema_name="data_quality", table_name="t"),
+        check_type=CheckType.QUALITY,
     )
     qc.__table__.create(conn.engine)
     instance = qc()
@@ -59,3 +61,12 @@ def test_set_medians(conn: Connector, monkeypatch):
 
     assert instance.median_30_day_failed == 10.5
     assert instance.median_30_day_passed == 155
+
+
+def test_check_type_matching():
+    # CheckType class has __eq__ method overridden, so it makes sense to ensure default use works correctly as well.
+    assert CheckType.QUALITY == CheckType.QUALITY
+    assert CheckType.CONSISTENCY == CheckType.CONSISTENCY
+
+    assert "quality" == CheckType.QUALITY
+    assert "consistency" == CheckType.CONSISTENCY

@@ -5,7 +5,7 @@ import sqlalchemy
 from datetime import datetime
 
 from contessa.db import Connector
-from contessa.models import create_default_check_class, Table, ResultTable
+from contessa.models import create_default_check_class, Table, ResultTable, CheckType
 
 
 class ConsistencyChecker:
@@ -44,7 +44,7 @@ class ConsistencyChecker:
         )
 
         quality_check_class = create_default_check_class(
-            result_table, check_type="consistency"
+            result_table, check_type=CheckType.CONSISTENCY
         )
         self.right_conn.ensure_table(quality_check_class.__table__)
         self.insert(quality_check_class, result)

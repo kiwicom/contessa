@@ -7,7 +7,7 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
-from contessa.models import create_default_check_class, Table, ResultTable
+from contessa.models import create_default_check_class, Table, ResultTable, CheckType
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 
@@ -137,6 +137,8 @@ class ContessaRunner:
                 f"Using {quality_check_class.__name__} as quality check class."
             )
         else:
-            quality_check_class = create_default_check_class(result_table)
+            quality_check_class = create_default_check_class(
+                result_table, check_type=CheckType.QUALITY
+            )
             logging.info("Using default QualityCheck class.")
         return quality_check_class

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from statistics import median
-from typing import Dict
+from typing import Dict, Union
+from enum import Enum
 
 import pandas as pd
 from sqlalchemy import and_, Column, DateTime, MetaData, text, UniqueConstraint
@@ -19,6 +20,24 @@ from sqlalchemy.ext.declarative import (
 
 from contessa.base_rules import Rule
 from contessa.db import Connector
+
+
+class CheckType(Enum):
+    QUALITY = "quality"
+    CONSISTENCY = "consistency"
+
+    def __eq__(self, other):
+        if type(other) == "str":
+            return self.value in set(item.value for item in self)
+        return self.value == other
+
+    @classmethod
+    def from_string(cls, check_type: str):
+        for item in cls:
+            if item.value == check_type:
+                return CheckType[item.name]
+        raise ValueError("Invalid `check_type`.")
+
 
 # default schema for results is `data_quality`, but it can be overridden by passing
 # ResultTable to runner. constructing concrete model for QualityCheck (that's abstract) will
@@ -241,7 +260,9 @@ class ResultTable(Table):
         return camel_case[0].title() + camel_case[1:]
 
 
-def create_default_check_class(result_table: ResultTable, check_type: str = "quality"):
+def create_default_check_class(
+    result_table: ResultTable, check_type: Union[CheckType, str]
+):
     """
     This will construct type/class (not object) that will have special name that its prefixed
     with its table. It's better because sqlalchemy can yell somethings if we would use same class
@@ -263,10 +284,10 @@ def create_default_check_class(result_table: ResultTable, check_type: str = "qua
             "concrete": True,
         },
     }
-    if check_type == "quality":
-        check_class = QualityCheck
-    else:
+    if check_type == CheckType.CONSISTENCY:
         check_class = ConsistencyCheck
+    else:
+        check_class = QualityCheck
     cls = type(result_table.clsname, (check_class,), attributedict)
     cls.metadata.schema = result_table.schema_name
     cls.__table__.schema = result_table.schema_name
