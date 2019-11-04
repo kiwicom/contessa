@@ -1,6 +1,8 @@
 from typing import Union, List
+import logging
 
-from sqlalchemy import create_engine
+import sqlalchemy
+from sqlalchemy import create_engine, exc, Table
 from sqlalchemy.engine.base import Engine
 import pandas.io.sql as pdsql
 from sqlalchemy.orm import sessionmaker
@@ -43,3 +45,13 @@ class Connector:
 
     def get_pandas_df(self, sql):
         return pdsql.read_sql(sql, con=self.engine)
+
+    def ensure_table(self, table: Table):
+        """
+        Create table for given table class if it doesn't exists.
+        """
+        try:
+            table.create(bind=self.engine)
+            logging.info(f"Created table {table.name}.")
+        except sqlalchemy.exc.ProgrammingError:
+            logging.info(f"Table {table.name} already exists. Skipping creation.")

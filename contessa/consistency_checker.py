@@ -46,7 +46,7 @@ class ConsistencyChecker:
         quality_check_class = create_default_check_class(
             result_table, check_type="consistency"
         )
-        self.ensure_table(quality_check_class)
+        self.right_conn.ensure_table(quality_check_class.__table__)
         self.insert(quality_check_class, result)
 
     @staticmethod
@@ -102,18 +102,6 @@ class ConsistencyChecker:
         """
         result = [r for r in conn.get_records(query)]
         return result
-
-    def ensure_table(self, qc_cls):
-        """
-        Create table for QualityCheck class if it doesn't exists. E.g. quality_check_
-        """
-        try:
-            qc_cls.__table__.create(bind=self.right_conn.engine)
-            logging.info(f"Created table {qc_cls.__tablename__}.")
-        except sqlalchemy.exc.ProgrammingError:
-            logging.info(
-                f"Table {qc_cls.__tablename__} already exists. Skipping creation."
-            )
 
     def insert(self, dc_cls, result):
         """
