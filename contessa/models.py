@@ -165,8 +165,8 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
 
     id = Column(BIGINT, primary_key=True)
     type = Column(TEXT)
-    check_name = Column(TEXT)
-    check_description = Column(TEXT)
+    name = Column(TEXT)
+    description = Column(TEXT)
     left_table = Column(TEXT)
     right_table = Column(TEXT)
 
@@ -213,14 +213,14 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         """
         # todo - add to doc
         self.task_ts = context["task_ts"]
-        self.check_name = check["name"]
-        self.check_description = check["description"]
+        self.name = check["name"]
+        self.description = check["description"]
         self.left_table = left_table_name
         self.right_table = right_table_name
         self.status = status
 
     def __repr__(self):
-        return f"Rule ({self.type} - {self.check_name} - {self.task_ts})"
+        return f"Rule ({self.type} - {self.name} - {self.task_ts})"
 
 
 # todo - maybe create also CheckTable
