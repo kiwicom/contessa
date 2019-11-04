@@ -13,6 +13,3 @@ It takes 2 tables (possibly from 2 different source DBs) and compares the result
 Output of this check is simply a boolean value, denoting whether the results are the same.
 Result is then in form of **ConsistencyCheck** instance saved to the given result table, together with the table names
 and name of the check.
-
-
-
