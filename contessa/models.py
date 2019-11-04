@@ -191,7 +191,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         return (
             UniqueConstraint(
                 "type",
-                "check_name",
+                "name",
                 "left_table",
                 "right_table",
                 "task_ts",

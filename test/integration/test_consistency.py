@@ -140,3 +140,67 @@ class TestDataQualityOperator(unittest.TestCase):
         """
         )
         self.assertEqual(rows.iloc[0]["status"], "true")
+
+    @mock.patch("contessa.executor.datetime", FakedDatetime)
+    def test_execute_consistency_diff(self):
+        self.inconsistent_colums_left = "user"
+        self.inconsistent_colums_right = "user_inconsistent"
+
+        sql = [
+            f"""
+                CREATE TABLE IF NOT EXISTS tmp.{self.inconsistent_colums_left}(
+                  id SERIAL PRIMARY KEY,
+                  name text
+                )
+            """,
+            f"""
+                CREATE TABLE IF NOT EXISTS tmp.{self.inconsistent_colums_right}(
+                  name text,
+                  id SERIAL PRIMARY KEY
+                )
+            """,
+            f"""
+                INSERT INTO tmp.{self.inconsistent_colums_left}
+                VALUES
+                    (1, 'John Doe')
+                """,
+            f"""
+                INSERT INTO tmp.{self.inconsistent_colums_right}
+                VALUES
+                    ('John Doe', 1)
+            """,
+        ]
+        self.conn = Connector(TEST_DB_URI)
+        for s in sql:
+            self.conn.execute(s)
+
+        self.consistency_checker = ConsistencyChecker(TEST_DB_URI)
+
+        self.consistency_checker.run(
+            self.consistency_checker.DIFF,
+            left_check_table={
+                "schema_name": "tmp",
+                "table_name": self.inconsistent_colums_left,
+            },
+            right_check_table={
+                "schema_name": "tmp",
+                "table_name": self.inconsistent_colums_right,
+            },
+            result_table={
+                "schema_name": "data_quality",
+                "table_name": self.result_table_name,
+                "use_prefix": False,
+            },
+            context={"task_ts": self.now},
+        )
+
+        rows = self.conn.get_pandas_df(
+            f"""
+                SELECT * from data_quality.{self.result_table_name}
+                order by created_at
+            """
+        )
+
+        # TODO: This is a known issue, update ConsistencyChecker.run_query to allow for same columns in different order.
+        # TODO: This test should pass with a "true" value.
+        self.assertEqual(rows.iloc[0]["status"], "false")
