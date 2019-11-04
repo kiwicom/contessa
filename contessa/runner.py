@@ -38,7 +38,7 @@ class ContessaRunner:
         normalized_rules = self.normalize_rules(raw_rules)
         refresh_executors(check_table, self.conn, context)
         quality_check_class = self.get_quality_check_class(result_table)
-        self.ensure_table(quality_check_class)
+        self.conn.ensure_table(quality_check_class.__table__)
 
         rules = self.build_rules(normalized_rules)
         objs = self.do_quality_checks(quality_check_class, rules, context)
@@ -96,18 +96,6 @@ class ContessaRunner:
             session.rollback()
         finally:
             session.close()
-
-    def ensure_table(self, qc_cls):
-        """
-        Create table for QualityCheck class if it doesn't exists. E.g. quality_check_
-        """
-        try:
-            qc_cls.__table__.create(bind=self.conn.engine)
-            logging.info(f"Created table {qc_cls.__tablename__}.")
-        except sqlalchemy.exc.ProgrammingError:
-            logging.info(
-                f"Table {qc_cls.__tablename__} already exists. Skipping creation."
-            )
 
     def build_rules(self, normalized_rules):
         """
