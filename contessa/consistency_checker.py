@@ -5,7 +5,7 @@ import sqlalchemy
 from datetime import datetime
 
 from contessa.db import Connector
-from contessa.models import create_default_check_class, Table, ResultTable, CheckType
+from contessa.models import create_default_check_class, Table, ResultTable, DataQualityDimension
 
 
 class ConsistencyChecker:
@@ -28,7 +28,7 @@ class ConsistencyChecker:
 
     def run(
         self,
-        check_type: str,
+        method: str,
         left_check_table: Dict,
         right_check_table: Dict,
         result_table: Dict,
@@ -40,11 +40,11 @@ class ConsistencyChecker:
         context = self.get_context(left_check_table, right_check_table, context)
 
         result = self.do_consistency_check(
-            check_type, left_check_table, right_check_table, context
+            method, left_check_table, right_check_table, context
         )
 
         quality_check_class = create_default_check_class(
-            result_table, check_type=CheckType.CONSISTENCY
+            result_table, data_quality_dimension=DataQualityDimension.CONSISTENCY
         )
         self.right_conn.ensure_table(quality_check_class.__table__)
         self.insert(quality_check_class, result)
@@ -68,7 +68,7 @@ class ConsistencyChecker:
 
     def do_consistency_check(
         self,
-        check_type: str,
+        method: str,
         left_check_table: Table,
         right_check_table: Table,
         context: Dict = None,
@@ -77,22 +77,20 @@ class ConsistencyChecker:
         Run quality check for all rules. Use `qc_cls` to construct objects that will be inserted
         afterwards.
         """
-        left_result = self.run_query(
-            left_check_table.fullname, self.left_conn, check_type
-        )
+        left_result = self.run_query(left_check_table.fullname, self.left_conn, method)
         right_result = self.run_query(
-            right_check_table.fullname, self.right_conn, check_type
+            right_check_table.fullname, self.right_conn, method
         )
         return {
-            "check": {"name": check_type, "description": ""},
+            "check": {"name": method, "description": ""},
             "status": left_result == right_result,
             "left_table_name": left_check_table.fullname,
             "right_table_name": right_check_table.fullname,
             "context": context,
         }
 
-    def run_query(self, table_name: str, conn: Connector, type: str):
-        if type == self.COUNT:
+    def run_query(self, table_name: str, conn: Connector, method: str):
+        if method == self.COUNT:
             column = "count(*)"
         else:
             column = "*"

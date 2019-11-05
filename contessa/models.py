@@ -22,7 +22,7 @@ from contessa.base_rules import Rule
 from contessa.db import Connector
 
 
-class CheckType(Enum):
+class DataQualityDimension(Enum):
     QUALITY = "quality"
     CONSISTENCY = "consistency"
 
@@ -35,8 +35,8 @@ class CheckType(Enum):
     def from_string(cls, check_type: str):
         for item in cls:
             if item.value == check_type:
-                return CheckType[item.name]
-        raise ValueError("Invalid `check_type`.")
+                return DataQualityDimension[item.name]
+        raise ValueError("Invalid `data_quality_dimension`.")
 
 
 # default schema for results is `data_quality`, but it can be overridden by passing
@@ -261,7 +261,7 @@ class ResultTable(Table):
 
 
 def create_default_check_class(
-    result_table: ResultTable, check_type: Union[CheckType, str]
+    result_table: ResultTable, data_quality_dimension: Union[DataQualityDimension, str]
 ):
     """
     This will construct type/class (not object) that will have special name that its prefixed
@@ -284,7 +284,7 @@ def create_default_check_class(
             "concrete": True,
         },
     }
-    if check_type == CheckType.CONSISTENCY:
+    if data_quality_dimension == DataQualityDimension.CONSISTENCY:
         check_class = ConsistencyCheck
     else:
         check_class = QualityCheck
