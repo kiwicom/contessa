@@ -3,10 +3,10 @@ python:
 - "3.7"
 jobs:
   include:
-  - stage: tests
-    script: make test $TRAVIS_BUILD_DIR/test/
   - stage: black
     script: make black
+  - stage: tests
+    script: make test $TRAVIS_BUILD_DIR/test/
   - stage: deploy pypi test
     deploy:
       provider: pypi
