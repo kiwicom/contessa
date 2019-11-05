@@ -5,6 +5,8 @@ services:
         image: postgres
         environment:
           - POSTGRES_DB=test_db
+        ports:
+          - 5433:5432
 
     app-test:
         image: contessa
