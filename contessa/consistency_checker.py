@@ -5,7 +5,12 @@ import sqlalchemy
 from datetime import datetime
 
 from contessa.db import Connector
-from contessa.models import create_default_check_class, Table, ResultTable, DataQualityDimension
+from contessa.models import (
+    create_default_check_class,
+    Table,
+    ResultTable,
+    DataQualityDimension,
+)
 
 
 class ConsistencyChecker:
@@ -93,7 +98,8 @@ class ConsistencyChecker:
         if method == self.COUNT:
             column = "count(*)"
         else:
-            column = "*"
+            # List the columns explicitly in case column order of compared tables is not the same.
+            column = ", ".join(sorted(conn.get_column_names(table_name)))
         query = f"""
             SELECT { column }
             FROM { table_name }

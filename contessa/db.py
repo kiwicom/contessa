@@ -55,3 +55,14 @@ class Connector:
             logging.info(f"Created table {table.name}.")
         except sqlalchemy.exc.ProgrammingError:
             logging.info(f"Table {table.name} already exists. Skipping creation.")
+
+    def get_column_names(self, table_full_name: str) -> List:
+        schema_query = f"""
+                SELECT
+                    column_name
+                FROM information_schema.columns
+                WHERE concat(table_schema, '.', table_name) = '{table_full_name}'
+                ORDER BY ordinal_position
+            """
+
+        return [col[0] for col in self.get_records(schema_query)]
