@@ -7,7 +7,12 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
-from contessa.models import create_default_check_class, Table, ResultTable, DataQualityDimension
+from contessa.models import (
+    create_default_check_class,
+    Table,
+    ResultTable,
+    DataQualityDimension,
+)
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 
