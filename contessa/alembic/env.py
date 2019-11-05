@@ -24,13 +24,13 @@ target_metadata = None
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-sqlalchemy_url = context.get_x_argument(as_dictionary=True).get('sqlalchemy_url')
-schema = context.get_x_argument(as_dictionary=True).get('schema')
+sqlalchemy_url = context.get_x_argument(as_dictionary=True).get("sqlalchemy_url")
+schema = context.get_x_argument(as_dictionary=True).get("schema")
 
 if sqlalchemy_url:
-    config.set_main_option('sqlalchemy.url', sqlalchemy_url)
+    config.set_main_option("sqlalchemy.url", sqlalchemy_url)
 if schema:
-    config.set_main_option('schema', schema)
+    config.set_main_option("schema", schema)
 
 
 def run_migrations_offline():
@@ -55,7 +55,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         version_table_schema=default_schema,
-        include_schemas=True
+        include_schemas=True,
     )
 
     with context.begin_transaction():
@@ -85,11 +85,11 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             version_table_schema=default_schema,
-            include_schemas=True
+            include_schemas=True,
         )
 
         with context.begin_transaction():
-            context.execute('SET search_path TO public')
+            context.execute("SET search_path TO public")
             context.run_migrations()
 
 
