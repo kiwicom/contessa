@@ -28,7 +28,9 @@ def test_compose_kwargs_sql_executor_time_filter(dummy_contessa, ctx):
     expected = f"created_at BETWEEN '{computed_datetime} UTC'::timestamptz AND '{ctx['task_ts']} UTC'::timestamptz"
     assert time_filter == expected, "time_filter is string"
 
-    rule = NotNullRule("not_null_name", "not_null", "src", time_filter=[{"column": "created_at"}])
+    rule = NotNullRule(
+        "not_null_name", "not_null", "src", time_filter=[{"column": "created_at"}]
+    )
     time_filter = e.compose_where_time_filter(rule)
     computed_datetime = (ctx["task_ts"] - timedelta(days=30)).strftime(
         "%Y-%m-%d %H:%M:%S"

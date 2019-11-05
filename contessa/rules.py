@@ -116,7 +116,9 @@ class CustomSqlRule(SqlRule):
 
 
 class NotNullRule(OneColumnRuleSQL):
-    def __init__(self, name, type, column, description="True when data is null.", **kwargs):
+    def __init__(
+        self, name, type, column, description="True when data is null.", **kwargs
+    ):
         super().__init__(name, type, column, description=description, **kwargs)
 
     @property

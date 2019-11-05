@@ -6,7 +6,12 @@ from contessa.rules import GtRule, NotNullRule
 
 def test_build_rules(dummy_contessa):
     rules = [
-        {"name": "not_null_name", "type": "not_null", "columns": ["a", "b", "c"], "time_filter": "created_at"}
+        {
+            "name": "not_null_name",
+            "type": "not_null",
+            "columns": ["a", "b", "c"],
+            "time_filter": "created_at",
+        }
     ]
     normalized_rules = dummy_contessa.normalize_rules(rules)
     rules = dummy_contessa.build_rules(normalized_rules)

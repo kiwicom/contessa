@@ -33,9 +33,12 @@ def df():
             GtRule("gt_name", "gt", "value", "value2"),
             [False, False, True, False, False],
         ),  # test another col
-        (NotNullRule("not_null_name", "not_null", "value"), [True, True, True, False, True]),
+        (
+            NotNullRule("not_null_name", "not_null", "value"),
+            [True, True, True, False, True],
+        ),
         (GteRule("gte_name", "gte", "value", 4), [False, True, True, False, True]),
-        (NotRule("not_name" ,"not", "value", 4), [True, False, True, True, False]),
+        (NotRule("not_name", "not", "value", 4), [True, False, True, True, False]),
         (LtRule("lt_name", "lt", "value", 4), [True, False, False, False, False]),
         (LteRule("lte_name", "lte", "value", 4), [True, True, False, False, True]),
         (EqRule("eq_name", "eq", "value", 4), [False, True, False, False, True]),
@@ -67,18 +70,40 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
 @pytest.mark.parametrize(
     "rule, expected",
     [
-        (GtRule("gt_name", "gt", "value", 4, condition="conditional is TRUE"), [False, False]),
         (
-            NotNullRule("not_null_name", "not_null", "value", condition="conditional is TRUE"),
+            GtRule("gt_name", "gt", "value", 4, condition="conditional is TRUE"),
+            [False, False],
+        ),
+        (
+            NotNullRule(
+                "not_null_name", "not_null", "value", condition="conditional is TRUE"
+            ),
             [True, True],
         ),
-        (GteRule("gte_name", "gte", "value", 4, condition="conditional is TRUE"), [False, True]),
-        (NotRule("not_name", "not", "value", 4, condition="conditional is TRUE"), [True, False]),
-        (LtRule("lt_name", "lt", "value", 4, condition="conditional is TRUE"), [True, False]),
-        (LteRule("lte_name", "lte", "value", 4, condition="conditional is TRUE"), [True, True]),
-        (EqRule("eq_name", "eq", "value", 4, condition="conditional is TRUE"), [False, True]),
         (
-            LteRule("lte_name", "lte", "date", "now()", condition="conditional is FALSE"),
+            GteRule("gte_name", "gte", "value", 4, condition="conditional is TRUE"),
+            [False, True],
+        ),
+        (
+            NotRule("not_name", "not", "value", 4, condition="conditional is TRUE"),
+            [True, False],
+        ),
+        (
+            LtRule("lt_name", "lt", "value", 4, condition="conditional is TRUE"),
+            [True, False],
+        ),
+        (
+            LteRule("lte_name", "lte", "value", 4, condition="conditional is TRUE"),
+            [True, True],
+        ),
+        (
+            EqRule("eq_name", "eq", "value", 4, condition="conditional is TRUE"),
+            [False, True],
+        ),
+        (
+            LteRule(
+                "lte_name", "lte", "date", "now()", condition="conditional is FALSE"
+            ),
             [False, False, True],
         ),
     ],

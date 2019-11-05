@@ -18,24 +18,78 @@ from contessa.normalizer import RuleNormalizer
                 }
             ],
             [
-                {"name": "not_null_name", "type": "not_null", "column": "a", "time_filter": "c"},
-                {"name": "not_null_name", "type": "not_null", "column": "b", "time_filter": "c"},
-                {"name": "not_null_name", "type": "not_null", "column": "c", "time_filter": "c"},
-                {"name": "not_null_name", "type": "not_null", "column": "a", "time_filter": "u"},
-                {"name": "not_null_name", "type": "not_null", "column": "b", "time_filter": "u"},
-                {"name": "not_null_name", "type": "not_null", "column": "c", "time_filter": "u"},
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "a",
+                    "time_filter": "c",
+                },
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "b",
+                    "time_filter": "c",
+                },
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "c",
+                    "time_filter": "c",
+                },
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "a",
+                    "time_filter": "u",
+                },
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "b",
+                    "time_filter": "u",
+                },
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "c",
+                    "time_filter": "u",
+                },
             ],
         ),
         (
             [{"name": "not_null_name", "type": "not_null", "columns": ["a", "b"]}],
             [
-                {"name": "not_null_name", "type": "not_null", "column": "a", "time_filter": None},
-                {"name": "not_null_name", "type": "not_null", "column": "b", "time_filter": None},
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "a",
+                    "time_filter": None,
+                },
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "b",
+                    "time_filter": None,
+                },
             ],
         ),
         (
-            [{"name": "not_null_name", "type": "not_null", "column": "a", "time_filter": "a"}],
-            [{"name": "not_null_name", "type": "not_null", "column": "a", "time_filter": "a"}],
+            [
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "a",
+                    "time_filter": "a",
+                }
+            ],
+            [
+                {
+                    "name": "not_null_name",
+                    "type": "not_null",
+                    "column": "a",
+                    "time_filter": "a",
+                }
+            ],
         ),
     ],
 )
