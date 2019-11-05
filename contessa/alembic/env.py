@@ -24,6 +24,14 @@ target_metadata = None
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+sqlalchemy_url = context.get_x_argument(as_dictionary=True).get('sqlalchemy_url')
+schema = context.get_x_argument(as_dictionary=True).get('schema')
+
+if sqlalchemy_url:
+    config.set_main_option('sqlalchemy.url', sqlalchemy_url)
+if schema:
+    config.set_main_option('schema', schema)
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -37,12 +45,17 @@ def run_migrations_offline():
     script output.
 
     """
+
     url = config.get_main_option("sqlalchemy.url")
+    default_schema = config.get_main_option("schema")
+
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table_schema=default_schema,
+        include_schemas=True
     )
 
     with context.begin_transaction():
@@ -56,6 +69,10 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
+
+    url = config.get_main_option("sqlalchemy.url")
+    default_schema = config.get_main_option("schema")
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
@@ -64,10 +81,15 @@ def run_migrations_online():
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            url=url,
+            connection=connection,
+            target_metadata=target_metadata,
+            version_table_schema=default_schema,
+            include_schemas=True
         )
 
         with context.begin_transaction():
+            context.execute('SET search_path TO public')
             context.run_migrations()
 
 
