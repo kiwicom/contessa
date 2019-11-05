@@ -211,7 +211,6 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         """
         Set result to consistency check object.
         """
-        # todo - add to doc
         self.task_ts = context["task_ts"]
         self.name = check["name"]
         self.description = check["description"]
