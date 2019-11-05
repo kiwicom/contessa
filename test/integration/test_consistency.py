@@ -143,8 +143,11 @@ class TestDataQualityOperator(unittest.TestCase):
 
     @mock.patch("contessa.executor.datetime", FakedDatetime)
     def test_execute_consistency_diff(self):
+        """ Test scenario where table diff is done on tables with different column order."""
         self.inconsistent_colums_left = "user"
         self.inconsistent_colums_right = "user_inconsistent"
+        self.conn = Connector(TEST_DB_URI)
+        self.consistency_checker = ConsistencyChecker(TEST_DB_URI)
 
         sql = [
             f"""
@@ -170,11 +173,9 @@ class TestDataQualityOperator(unittest.TestCase):
                     ('John Doe', 1)
             """,
         ]
-        self.conn = Connector(TEST_DB_URI)
+
         for s in sql:
             self.conn.execute(s)
-
-        self.consistency_checker = ConsistencyChecker(TEST_DB_URI)
 
         self.consistency_checker.run(
             self.consistency_checker.DIFF,
@@ -201,6 +202,4 @@ class TestDataQualityOperator(unittest.TestCase):
             """
         )
 
-        # TODO: This is a known issue, update ConsistencyChecker.run_query to allow for same columns in different order.
-        # TODO: This test should pass with a "true" value.
-        self.assertEqual(rows.iloc[0]["status"], "false")
+        self.assertEqual(rows.iloc[0]["status"], "true")
