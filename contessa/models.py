@@ -26,17 +26,12 @@ class DataQualityDimension(Enum):
     QUALITY = "quality"
     CONSISTENCY = "consistency"
 
-    def __eq__(self, other):
-        if type(other) == "str":
-            return self.value in set(item.value for item in self)
-        return self.value == other
-
     @classmethod
-    def from_string(cls, check_type: str):
+    def from_value(cls, dimension: str):
         for item in cls:
-            if item.value == check_type:
+            if item.value == dimension:
                 return DataQualityDimension[item.name]
-        raise ValueError("Invalid `data_quality_dimension`.")
+        raise ValueError("Invalid data quality dimension.")
 
 
 # default schema for results is `data_quality`, but it can be overridden by passing
@@ -275,6 +270,10 @@ def create_default_check_class(
     But it has dynamic name - MyTable is replaced for the table we are doing quality check for.
     :return: class with dynamically created name
     """
+
+    if type(data_quality_dimension) == str:
+        data_quality_dimension = DataQualityDimension.from_value(data_quality_dimension)
+
     attributedict = {
         "__tablename__": result_table.table_name,
         "id": Column(BIGINT, primary_key=True),
