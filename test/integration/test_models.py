@@ -1,5 +1,7 @@
 import datetime
 
+import pytest
+
 from contessa.db import Connector
 from test.conftest import FakedDatetime
 
@@ -68,10 +70,15 @@ def test_set_medians(conn: Connector, monkeypatch):
     assert instance.median_30_day_passed == 155
 
 
-def test_check_type_matching():
-    # CheckType class has __eq__ method overridden, so it makes sense to ensure default use works correctly as well.
-    assert DataQualityDimension.QUALITY == DataQualityDimension.QUALITY
-    assert DataQualityDimension.CONSISTENCY == DataQualityDimension.CONSISTENCY
+def test_data_quality_dimension_from_value():
+    assert DataQualityDimension.CONSISTENCY == DataQualityDimension.from_value(
+        "consistency"
+    )
+    assert DataQualityDimension.CONSISTENCY != DataQualityDimension.from_value(
+        "quality"
+    )
 
-    assert "quality" == DataQualityDimension.QUALITY
-    assert "consistency" == DataQualityDimension.CONSISTENCY
+    with pytest.raises(ValueError) as e:
+        DataQualityDimension.from_value("does not exist")
+
+    assert "Invalid data quality dimension." in str(e.value)
