@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
+import contessa
 
 setup(
     name="contessa",
-    version="0.1.5",
+    version=contessa.__version__,
     description="Data-quality framework",
     long_description=open("README.rst", "r").read(),
     long_description_content_type="text/markdown",
@@ -15,7 +16,8 @@ setup(
         "sqlalchemy>=1.2",
         "psycopg2>=2.7",
         "jinja2>=2.10.1",
-        "alembic>=1.2.1",
+        "alembic>=1.3.0",
+        "click>=7.0"
     ],
     tests_require=["pytest"],
     python_requires=">=3.6",

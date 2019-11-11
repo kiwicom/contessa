@@ -4,10 +4,14 @@
 #
 #    pip-compile --output-file=requirements.txt requirements.in
 #
+alembic==1.2.1
 cachetools==3.1.1         # via google-auth
 certifi==2019.9.11        # via requests
 chardet==3.0.4            # via requests
+click==7.0
+enum34==1.1.6             # via google-cloud-bigquery
 future==0.18.1            # via pybigquery
+futures==3.3.0            # via google-api-core
 google-api-core==1.14.2   # via google-cloud-core
 google-auth==1.6.3        # via google-api-core
 google-cloud-bigquery==1.20.0  # via pybigquery
@@ -16,23 +20,23 @@ google-resumable-media==0.4.1  # via google-cloud-bigquery
 googleapis-common-protos==1.6.0  # via google-api-core
 idna==2.8                 # via requests
 jinja2==2.10.1
-markupsafe==1.1.1         # via jinja2
-numpy==1.17.0             # via pandas
-pandas==0.25.0
+mako==1.1.0               # via alembic
+markupsafe==1.1.1         # via jinja2, mako
+numpy==1.16.5             # via pandas
+pandas==0.24.2
 protobuf==3.10.0          # via google-api-core, google-cloud-bigquery, googleapis-common-protos
 psycopg2-binary==2.8.3
 pyasn1-modules==0.2.6     # via google-auth
 pyasn1==0.4.7             # via pyasn1-modules, rsa
 pybigquery==0.4.11
-python-dateutil==2.8.0    # via pandas
+python-dateutil==2.8.0    # via alembic, pandas
+python-editor==1.0.4      # via alembic
 pytz==2019.2              # via google-api-core, pandas
 requests==2.22.0          # via google-api-core
 rsa==4.0                  # via google-auth
 six==1.12.0               # via google-api-core, google-auth, google-resumable-media, protobuf, python-dateutil
 sqlalchemy==1.3.6
 urllib3==1.25.6           # via requests
-alembic==1.2.1
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools==41.4.0        # via google-api-core, protobuf
-
+# setuptools==41.6.0        # via google-api-core, protobuf

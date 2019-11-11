@@ -6,6 +6,8 @@ It exposes `DataQualityOperator` that can be plugged in any airflow DAG and will
 check on load in temporary table.
 """
 
+__version__ = '0.1.5'
+
 # Start ignoring PyUnusedCodeBear
 from .runner import ContessaRunner
 from .rules import EQ, GT, GTE, LT, LTE, NOT, NOT_COLUMN, NOT_NULL, SQL
