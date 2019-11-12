@@ -2,7 +2,7 @@
 from contessa.db import Connector
 from packaging.version import parse as pv
 
-ALEMBIC_TABLE = 'alembic_version'
+ALEMBIC_TABLE = "alembic_version"
 
 
 class MigrationsResolver:
@@ -21,7 +21,8 @@ class MigrationsResolver:
                FROM   information_schema.schemata
                WHERE  schema_name = '{self.schema}'
             );
-            """)
+            """
+        )
         return result.first()[0]
 
     def migrations_table_exists(self):
@@ -33,7 +34,8 @@ class MigrationsResolver:
                WHERE  table_schema = '{self.schema}'
                AND    table_name = '{ALEMBIC_TABLE}'
            );
-            """)
+            """
+        )
         return result.first()[0]
 
     def get_applied_migration(self):
@@ -73,15 +75,13 @@ class MigrationsResolver:
         fallback_version = self.get_fallback_version()
 
         if self.migrations_table_exists() is False:
-            return 'upgrade', self.versions_migrations[fallback_version]
+            return "upgrade", self.versions_migrations[fallback_version]
 
         migrations_versions = dict(map(reversed, self.versions_migrations.items()))
         applied_migration = self.get_applied_migration()
         applied_package = migrations_versions[applied_migration]
 
         if pv(applied_package) < pv(fallback_version):
-            return 'upgrade', self.versions_migrations[fallback_version]
+            return "upgrade", self.versions_migrations[fallback_version]
         if pv(applied_package) > pv(fallback_version):
-            return 'downgrade', self.versions_migrations[fallback_version]
-
-
+            return "downgrade", self.versions_migrations[fallback_version]

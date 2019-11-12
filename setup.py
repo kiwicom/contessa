@@ -19,7 +19,7 @@ setup(
         "jinja2>=2.10.1",
         "alembic>=1.3.0",
         "click>=7.0",
-        "packaging>=19.2"
+        "packaging>=19.2",
     ],
     tests_require=["pytest"],
     python_requires=">=3.6",

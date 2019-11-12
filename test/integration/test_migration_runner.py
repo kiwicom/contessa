@@ -6,11 +6,11 @@ from contessa.db import Connector
 from test.integration.conftest import TEST_DB_URI
 from contessa.models import DQBase
 
-DATA_QUALITY_SCHEMA = 'data_quality_test'
-ALEMBIC_TABLE = 'alembic_version'
-DATA_QUALITY_TABLE_1 = 'quality_check_example_table'
-DATA_QUALITY_TABLE_2 = 'quality_check_another_table'
-SQLALCHEMY_URL = 'postgresql://postgres:postgres@postgres:5432/test_db'
+DATA_QUALITY_SCHEMA = "data_quality_test"
+ALEMBIC_TABLE = "alembic_version"
+DATA_QUALITY_TABLE_1 = "quality_check_example_table"
+DATA_QUALITY_TABLE_2 = "quality_check_another_table"
+SQLALCHEMY_URL = "postgresql://postgres:postgres@postgres:5432/test_db"
 
 
 def get_quality_table_creation_script_0_1_4(schema, table_name):
@@ -49,13 +49,17 @@ class TestMigrationsResolver(unittest.TestCase):
         sql = [
             f"DROP SCHEMA IF EXISTS {DATA_QUALITY_SCHEMA} CASCADE;"
             f"CREATE SCHEMA IF NOT EXISTS {DATA_QUALITY_SCHEMA};",
-            get_quality_table_creation_script_0_1_4(DATA_QUALITY_SCHEMA, DATA_QUALITY_TABLE_1),
-            get_quality_table_creation_script_0_1_4(DATA_QUALITY_SCHEMA, DATA_QUALITY_TABLE_2),
+            get_quality_table_creation_script_0_1_4(
+                DATA_QUALITY_SCHEMA, DATA_QUALITY_TABLE_1
+            ),
+            get_quality_table_creation_script_0_1_4(
+                DATA_QUALITY_SCHEMA, DATA_QUALITY_TABLE_2
+            ),
             f"""
             INSERT INTO {DATA_QUALITY_SCHEMA}.{DATA_QUALITY_TABLE_1} (attribute, rule_name, rule_description, total_records, failed, median_30_day_failed, failed_percentage, passed, median_30_day_passed, passed_percentage, status, time_filter, task_ts, created_at, id) VALUES ('src', 'not_null', 'True when data is null.', 41136, 0, null, 0, 41136, null, 100, 'valid', null, '2019-11-09 00:00:00.000000', '2019-11-12 12:41:28.391365', 75597);
             INSERT INTO {DATA_QUALITY_SCHEMA}.{DATA_QUALITY_TABLE_1} (attribute, rule_name, rule_description, total_records, failed, median_30_day_failed, failed_percentage, passed, median_30_day_passed, passed_percentage, status, time_filter, task_ts, created_at, id) VALUES ('dst', 'not_null', 'True when data is null.', 41136, 0, null, 0, 41136, null, 100, 'valid', null, '2019-11-09 00:00:00.000000', '2019-11-12 12:41:28.391365', 75598);
             INSERT INTO {DATA_QUALITY_SCHEMA}.{DATA_QUALITY_TABLE_1} (attribute, rule_name, rule_description, total_records, failed, median_30_day_failed, failed_percentage, passed, median_30_day_passed, passed_percentage, status, time_filter, task_ts, created_at, id) VALUES ('departure_time', 'not_null', 'True when data is null.', 41136, 0, null, 0, 41136, null, 100, 'valid', null, '2019-11-09 00:00:00.000000', '2019-11-12 12:41:28.391365', 75599);
-            """
+            """,
         ]
         self.conn = Connector(TEST_DB_URI)
         for s in sql:
@@ -70,10 +74,9 @@ class TestMigrationsResolver(unittest.TestCase):
 
     def test_migration_to_0_1_5(self):
         try:
-            migration.main([
-                "-u", SQLALCHEMY_URL,
-                "-s", DATA_QUALITY_SCHEMA,
-                "-v", "0.1.5"])
+            migration.main(
+                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.1.5"]
+            )
 
         except SystemExit as e:
             print(e.args[0])
@@ -87,7 +90,8 @@ class TestMigrationsResolver(unittest.TestCase):
                      table_name='{DATA_QUALITY_TABLE_1}' and
                      column_name='rule_type'
             );
-            """)
+            """
+        )
 
         assert rule_type_exists_result.first()[0]
 
@@ -100,7 +104,8 @@ class TestMigrationsResolver(unittest.TestCase):
                              table_name='{DATA_QUALITY_TABLE_1}' and
                              column_name='rule_name'
                     );
-                    """)
+                    """
+        )
 
         assert rule_name_exists_result.first()[0]
 
@@ -109,8 +114,7 @@ class TestMigrationsResolver(unittest.TestCase):
                 SELECT COUNT(*)
                 FROM data_quality_test.quality_check_example_table
                 WHERE rule_type='not_null'
-            """)
+            """
+        )
 
         assert rule_type_is_filled_result.first()[0] == 3
-
-

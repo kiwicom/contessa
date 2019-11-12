@@ -12,27 +12,23 @@ alembic_ini_path = os.path.join(here, "alembic.ini")
 
 @click.command()
 @click.option(
-    '-u',
-    '--url',
-    help='Connection string to database in the form driver://user:pass@localhost/dbname.',
-    required=True)
+    "-u",
+    "--url",
+    help="Connection string to database in the form driver://user:pass@localhost/dbname.",
+    required=True,
+)
 @click.option(
-    '-s',
-    '--schema',
-    help='Schema containing tables to migrate.',
-    required=True)
-@click.option(
-    '-v',
-    '--version',
-    help='Version of package to migrate.',
-    required=True)
+    "-s", "--schema", help="Schema containing tables to migrate.", required=True
+)
+@click.option("-v", "--version", help="Version of package to migrate.", required=True)
 def main(url, schema, version):
     if version != contessa.__version__:
         raise Exception(
             f"""
             Not possible execute migration to Contessa of version {version} because 
             your current Contessa version is {contessa.__version__}.
-            """)
+            """
+        )
 
     migration = MigrationsResolver(migration_map, contessa.__version__, url, schema)
     command = migration.get_migration_to_head()
@@ -51,5 +47,5 @@ def main(url, schema, version):
     alembic.config.main(argv=alembic_args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
