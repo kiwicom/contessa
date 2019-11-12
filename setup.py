@@ -23,7 +23,9 @@ setup(
     ],
     tests_require=["pytest"],
     python_requires=">=3.6",
-    entry_points={"console_scripts": ["contessa-migrate=contessa.migration:main"],},
+    entry_points={
+        "console_scripts": ["contessa-migrate=contessa.migration_runner:main"],
+    },
     classifiers=[
         "Operating System :: OS Independent",
         "Intended Audience :: Science/Research",

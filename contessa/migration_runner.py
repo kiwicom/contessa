@@ -2,6 +2,7 @@ import click
 import contessa
 import alembic.config
 import os
+import sys
 
 from contessa.migration import MigrationsResolver
 from contessa.alembic.packages_migrations import migration_map
@@ -32,6 +33,12 @@ def main(url, schema, version):
 
     migration = MigrationsResolver(migration_map, contessa.__version__, url, schema)
     command = migration.get_migration_to_head()
+
+    if command is None:
+        print(
+            f"Contessa database schema {schema} is already migrated to version {version}."
+        )
+        sys.exit()
 
     alembic_args = [
         "-x",

@@ -146,7 +146,7 @@ class TestMigrationsResolver(unittest.TestCase):
         """
         Drop all created tables.
         """
-        self.conn.execute(f"DROP schema data_quality_test CASCADE;")
+        # self.conn.execute(f"DROP schema data_quality_test CASCADE;")
         DQBase.metadata.clear()
 
     def test_schema_exists(self):
