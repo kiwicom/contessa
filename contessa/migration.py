@@ -1,16 +1,8 @@
 # Python script that will apply the migrations up to head
 from contessa.db import Connector
-from packaging import version
-
-import alembic.config
-import os
-import click
-import contessa
+from packaging.version import parse as pv
 
 ALEMBIC_TABLE = 'alembic_version'
-
-here = os.path.dirname(os.path.abspath(__file__))
-alembic_ini_path = os.path.join(here, "alembic.ini")
 
 
 class MigrationsResolver:
@@ -54,64 +46,42 @@ class MigrationsResolver:
         if self.migrations_table_exists() is False:
             return False
         current = self.get_applied_migration()
-        return self.versions_migrations[self.package_version] == current
+
+        fallback_package_version = self.get_fallback_version()
+        return self.versions_migrations[fallback_package_version] == current
+
+    def get_fallback_version(self):
+        keys = list(self.versions_migrations.keys())
+        if self.package_version in self.versions_migrations.keys():
+            return self.package_version
+        if pv(self.package_version) < pv(keys[0]):
+            return list(self.versions_migrations.keys())[0]
+        if pv(self.package_version) > pv(keys[-1]):
+            return list(self.versions_migrations.keys())[-1]
+
+        result = keys[0]
+        for k in keys[1:]:
+            if pv(k) <= pv(self.package_version):
+                result = k
+            else:
+                return result
 
     def get_migration_to_head(self):
-        if self.package_version not in self.versions_migrations.keys():
-            raise Exception(f'No migration exists for the Contessa version {self.package_version}')
-
         if self.is_on_head():
             return None
 
+        fallback_version = self.get_fallback_version()
+
         if self.migrations_table_exists() is False:
-            return 'upgrade', self.versions_migrations[self.package_version]
+            return 'upgrade', self.versions_migrations[fallback_version]
 
         migrations_versions = dict(map(reversed, self.versions_migrations.items()))
         applied_migration = self.get_applied_migration()
         applied_package = migrations_versions[applied_migration]
 
-        if version.parse(applied_package) < version.parse(self.package_version):
-            return 'upgrade', self.versions_migrations[self.package_version]
-        if version.parse(applied_package) > version.parse(self.package_version):
-            return 'downgrade', self.versions_migrations[self.package_version]
-
-    def migrate(self):
-        migrations = self.get_migration_to_head()
-
-        alembic_args = [
-            "-x",
-            f"sqlalchemy_url={self.url}",
-            "-x",
-            f"schema={self.schema}",
-            "-c",
-            alembic_ini_path,
-            migrations[0],
-            migrations[1],
-        ]
-
-        alembic.config.main(argv=alembic_args)
+        if pv(applied_package) < pv(fallback_version):
+            return 'upgrade', self.versions_migrations[fallback_version]
+        if pv(applied_package) > pv(fallback_version):
+            return 'downgrade', self.versions_migrations[fallback_version]
 
 
-migration_map = {
-    "0.1.4": "54f8985b0ee5",
-    "0.1.5": "480e6618700d"
-}
-
-@click.command()
-@click.option(
-    '-u',
-    '--url',
-    help='Connection string to database in the form driver://user:pass@localhost/dbname.',
-    required=True)
-@click.option(
-    '-s',
-    '--schema',
-    help='Schema containing tables to migrate.',
-    required=True)
-def main(url, schema):
-    migration = MigrationsResolver(migration_map, contessa.__version__, url, schema)
-    migration.migrate()
-
-
-if __name__ == '__main__':
-    main()

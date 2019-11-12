@@ -1,14 +1,9 @@
 import unittest
-import pytest
 
-from unittest import mock
 from contessa.db import Connector
 from test.integration.conftest import TEST_DB_URI
 from contessa.models import DQBase
-
 from contessa.migration import MigrationsResolver
-
-import contessa.migration as m
 
 DATA_QUALITY_SCHEMA = 'data_quality_test'
 ALEMBIC_TABLE = 'alembic_version'
@@ -196,6 +191,28 @@ class TestMigrationsResolver(unittest.TestCase):
 
         assert is_on_head
 
+    def test_is_on_head_no_on_head(self):
+        versions_migrations = {
+            "0.1.4": "54f8985b0ee5",
+            "0.1.5": "480e6618700d"
+        }
+
+        m = MigrationsResolver(versions_migrations, "0.1.5", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA)
+        is_on_head = m.is_on_head()
+
+        assert is_on_head is False
+
+    def test_is_on_head_with_fallback(self):
+        versions_migrations = {
+            "0.1.4": "54f8985b0ee5",
+            "0.1.6": "480e6618700d"
+        }
+
+        m = MigrationsResolver(versions_migrations, "0.1.5", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA)
+        is_on_head = m.is_on_head()
+
+        assert is_on_head
+
     def test_get_migrations_to_head__already_on_head(self):
         versions_migrations = {
             "0.1.4": "54f8985b0ee5",
@@ -206,16 +223,16 @@ class TestMigrationsResolver(unittest.TestCase):
         migrations = m.get_migration_to_head()
         assert migrations is None
 
-    def test_get_migrations_to_head__no_package_in_map(self):
+    def test_get_migrations_to_head__package_greather_than_map_max(self):
         versions_migrations = {
             "0.1.4": "54f8985b0ee5",
             "0.1.5": "480e6618700d"
         }
 
         m = MigrationsResolver(versions_migrations, "0.1.6", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA)
-
-        with pytest.raises(Exception):
-            assert m.get_migration_to_head()
+        migrations = m.get_migration_to_head()
+        assert migrations[0] is 'upgrade'
+        assert migrations[1] is '480e6618700d'
 
     def test_get_migrations_to_head__is_down_from_head(self):
         versions_migrations = {
@@ -232,9 +249,39 @@ class TestMigrationsResolver(unittest.TestCase):
         assert migrations[0] is 'upgrade'
         assert migrations[1] is '034hfa8943hr'
 
+    def test_get_migrations_to_head__is_down_from_head_with_fallback(self):
+        versions_migrations = {
+            "0.1.2": "w5rtyuret457",
+            "0.1.3": "dfgdfg5b0ee5",
+            "0.1.4": "54f8985b0ee5",
+            "0.1.5": "sdfatferbvg3",
+            "0.1.8": "480e6618700d",
+            "0.1.9": "3w4er8y50yyd"
+        }
+
+        m = MigrationsResolver(versions_migrations, "0.1.7", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA)
+        migrations = m.get_migration_to_head()
+        assert migrations[0] is 'upgrade'
+        assert migrations[1] is 'sdfatferbvg3'
+
     def test_get_migrations_to_head__is_up_from_head(self):
         versions_migrations = {
             "0.1.2": "w5rtyuret457",
+            "0.1.3": "dfgdfg5b0ee5",
+            "0.1.4": "54f8985b0ee5",
+            "0.1.5": "480e6618700d",
+            "0.1.6": "3w4er8y50yyd",
+            "0.1.7": "034hfa8943hr"
+        }
+
+        m = MigrationsResolver(versions_migrations, "0.1.2", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA)
+        migrations = m.get_migration_to_head()
+        assert migrations[0] is 'downgrade'
+        assert migrations[1] is 'w5rtyuret457'
+
+    def test_get_migrations_to_head__is_up_from_head_with_fallback(self):
+        versions_migrations = {
+            "0.1.1": "w5rtyuret457",
             "0.1.3": "dfgdfg5b0ee5",
             "0.1.4": "54f8985b0ee5",
             "0.1.5": "480e6618700d",
