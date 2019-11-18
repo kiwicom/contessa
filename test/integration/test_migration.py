@@ -66,7 +66,7 @@ class TestMigrationsResolverInit(unittest.TestCase):
         DQBase.metadata.clear()
 
     def test_migration_table_exists_init(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -76,7 +76,7 @@ class TestMigrationsResolverInit(unittest.TestCase):
         assert migration_table_exists is False
 
     def test_get_current_migration_init(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -86,7 +86,7 @@ class TestMigrationsResolverInit(unittest.TestCase):
         assert current is None
 
     def test_is_on_head_init(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -97,12 +97,12 @@ class TestMigrationsResolverInit(unittest.TestCase):
 
     def test_get_migrations_to_head__is_before_init(self):
         versions_migrations = {
-            "0.1.2": "w5rtyuret457",
-            "0.1.3": "dfgdfg5b0ee5",
-            "0.1.4": "54f8985b0ee5",
-            "0.1.5": "480e6618700d",
-            "0.1.6": "3w4er8y50yyd",
-            "0.1.7": "034hfa8943hr",
+            "0.1.2": "0.1.2-hash",
+            "0.1.3": "0.1.3-hash",
+            "0.1.4": "0.1.4-hash",
+            "0.1.5": "0.1.5-hash",
+            "0.1.6": "0.1.6-hash",
+            "0.1.7": "0.1.7-hash",
         }
 
         m = MigrationsResolver(
@@ -110,7 +110,7 @@ class TestMigrationsResolverInit(unittest.TestCase):
         )
         migrations = m.get_migration_to_head()
         assert migrations[0] is "upgrade"
-        assert migrations[1] is "034hfa8943hr"
+        assert migrations[1] is "0.1.7-hash"
 
 
 class TestMigrationsResolver(unittest.TestCase):
@@ -135,7 +135,7 @@ class TestMigrationsResolver(unittest.TestCase):
                                 constraint alembic_version_pkc
                                     primary key
                         );
-                        INSERT INTO {DATA_QUALITY_SCHEMA}.{ALEMBIC_TABLE} (version_num) VALUES ('54f8985b0ee5');
+                        INSERT INTO {DATA_QUALITY_SCHEMA}.{ALEMBIC_TABLE} (version_num) VALUES ('0.1.4-hash');
                     """,
         ]
         self.conn = Connector(TEST_DB_URI)
@@ -150,7 +150,7 @@ class TestMigrationsResolver(unittest.TestCase):
         DQBase.metadata.clear()
 
     def test_schema_exists(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -167,7 +167,7 @@ class TestMigrationsResolver(unittest.TestCase):
         assert schema_exists is False
 
     def test_migration_table_exists(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -177,17 +177,17 @@ class TestMigrationsResolver(unittest.TestCase):
         assert migration_table_exists
 
     def test_get_current_migration(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
         )
         current = m.get_applied_migration()
 
-        assert current == "54f8985b0ee5"
+        assert current == "0.1.4-hash"
 
     def test_is_on_head(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -197,7 +197,7 @@ class TestMigrationsResolver(unittest.TestCase):
         assert is_on_head
 
     def test_is_on_head_no_on_head(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.5", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -207,7 +207,7 @@ class TestMigrationsResolver(unittest.TestCase):
         assert is_on_head is False
 
     def test_is_on_head_with_fallback(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.6": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.6": "0.1.6-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.5", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -217,7 +217,7 @@ class TestMigrationsResolver(unittest.TestCase):
         assert is_on_head
 
     def test_get_migrations_to_head__already_on_head(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.4", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
@@ -226,23 +226,23 @@ class TestMigrationsResolver(unittest.TestCase):
         assert migrations is None
 
     def test_get_migrations_to_head__package_greather_than_map_max(self):
-        versions_migrations = {"0.1.4": "54f8985b0ee5", "0.1.5": "480e6618700d"}
+        versions_migrations = {"0.1.4": "0.1.4-hash", "0.1.5": "0.1.5-hash"}
 
         m = MigrationsResolver(
             versions_migrations, "0.1.6", SQLALCHEMY_URL, DATA_QUALITY_SCHEMA
         )
         migrations = m.get_migration_to_head()
         assert migrations[0] is "upgrade"
-        assert migrations[1] is "480e6618700d"
+        assert migrations[1] is "0.1.5-hash"
 
     def test_get_migrations_to_head__is_down_from_head(self):
         versions_migrations = {
-            "0.1.2": "w5rtyuret457",
-            "0.1.3": "dfgdfg5b0ee5",
-            "0.1.4": "54f8985b0ee5",
-            "0.1.5": "480e6618700d",
-            "0.1.6": "3w4er8y50yyd",
-            "0.1.7": "034hfa8943hr",
+            "0.1.2": "0.1.2-hash",
+            "0.1.3": "0.1.3-hash",
+            "0.1.4": "0.1.4-hash",
+            "0.1.5": "0.1.5-hash",
+            "0.1.6": "0.1.6-hash",
+            "0.1.7": "0.1.7-hash",
         }
 
         m = MigrationsResolver(
@@ -250,16 +250,16 @@ class TestMigrationsResolver(unittest.TestCase):
         )
         migrations = m.get_migration_to_head()
         assert migrations[0] is "upgrade"
-        assert migrations[1] is "034hfa8943hr"
+        assert migrations[1] is "0.1.7-hash"
 
     def test_get_migrations_to_head__is_down_from_head_with_fallback(self):
         versions_migrations = {
-            "0.1.2": "w5rtyuret457",
-            "0.1.3": "dfgdfg5b0ee5",
-            "0.1.4": "54f8985b0ee5",
-            "0.1.5": "sdfatferbvg3",
-            "0.1.8": "480e6618700d",
-            "0.1.9": "3w4er8y50yyd",
+            "0.1.2": "0.1.2-hash",
+            "0.1.3": "0.1.3-hash",
+            "0.1.4": "0.1.4-hash",
+            "0.1.5": "0.1.5-hash",
+            "0.1.8": "0.1.8-hash",
+            "0.1.9": "0.1.9-hash",
         }
 
         m = MigrationsResolver(
@@ -267,16 +267,16 @@ class TestMigrationsResolver(unittest.TestCase):
         )
         migrations = m.get_migration_to_head()
         assert migrations[0] is "upgrade"
-        assert migrations[1] is "sdfatferbvg3"
+        assert migrations[1] is "0.1.5-hash"
 
     def test_get_migrations_to_head__is_up_from_head(self):
         versions_migrations = {
-            "0.1.2": "w5rtyuret457",
-            "0.1.3": "dfgdfg5b0ee5",
-            "0.1.4": "54f8985b0ee5",
-            "0.1.5": "480e6618700d",
-            "0.1.6": "3w4er8y50yyd",
-            "0.1.7": "034hfa8943hr",
+            "0.1.2": "0.1.2-hash",
+            "0.1.3": "0.1.3-hash",
+            "0.1.4": "0.1.4-hash",
+            "0.1.5": "0.1.5-hash",
+            "0.1.6": "0.1.6-hash",
+            "0.1.7": "0.1.7-hash",
         }
 
         m = MigrationsResolver(
@@ -284,16 +284,16 @@ class TestMigrationsResolver(unittest.TestCase):
         )
         migrations = m.get_migration_to_head()
         assert migrations[0] is "downgrade"
-        assert migrations[1] is "w5rtyuret457"
+        assert migrations[1] is "0.1.2-hash"
 
     def test_get_migrations_to_head__is_up_from_head_with_fallback(self):
         versions_migrations = {
-            "0.1.1": "w5rtyuret457",
-            "0.1.3": "dfgdfg5b0ee5",
-            "0.1.4": "54f8985b0ee5",
-            "0.1.5": "480e6618700d",
-            "0.1.6": "3w4er8y50yyd",
-            "0.1.7": "034hfa8943hr",
+            "0.1.1": "0.1.1-hash",
+            "0.1.3": "0.1.3-hash",
+            "0.1.4": "0.1.4-hash",
+            "0.1.5": "0.1.5-hash",
+            "0.1.6": "0.1.6-hash",
+            "0.1.7": "0.1.7-hash",
         }
 
         m = MigrationsResolver(
@@ -301,4 +301,4 @@ class TestMigrationsResolver(unittest.TestCase):
         )
         migrations = m.get_migration_to_head()
         assert migrations[0] is "downgrade"
-        assert migrations[1] is "w5rtyuret457"
+        assert migrations[1] is "0.1.1-hash"
