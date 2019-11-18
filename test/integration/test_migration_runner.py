@@ -7,7 +7,7 @@ from test.integration.conftest import TEST_DB_URI
 from contessa.models import DQBase
 
 DATA_QUALITY_SCHEMA = "data_quality_test"
-ALEMBIC_TABLE = "alembic_version"
+ALEMBIC_TABLE = "contessa_alembic_version"
 DATA_QUALITY_TABLE_1 = "quality_check_example_table"
 DATA_QUALITY_TABLE_2 = "quality_check_another_table"
 SQLALCHEMY_URL = "postgresql://postgres:postgres@postgres:5432/test_db"
@@ -210,7 +210,7 @@ class TestMigrationsResolverTransaction(unittest.TestCase):
         except SystemExit as ex_exit:
             print(ex_exit.args[0])
         except Exception as ex:
-            print(f'Migration failes. Reason : {str(ex)}')
+            print(f"Migration failes. Reason : {str(ex)}")
 
         rule_type_exists_result = self.conn.get_records(
             f"""

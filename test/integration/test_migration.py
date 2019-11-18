@@ -6,7 +6,7 @@ from contessa.models import DQBase
 from contessa.migration import MigrationsResolver
 
 DATA_QUALITY_SCHEMA = "data_quality_test"
-ALEMBIC_TABLE = "alembic_version"
+ALEMBIC_TABLE = "contessa_alembic_version"
 DATA_QUALITY_TABLE_1 = "quality_check_example_table"
 DATA_QUALITY_TABLE_2 = "quality_check_another_table"
 SQLALCHEMY_URL = "postgresql://postgres:postgres@postgres:5432/test_db"

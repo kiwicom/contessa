@@ -26,8 +26,8 @@ def main(url, schema, version):
     if version != contessa.__version__:
         raise Exception(
             f"""
-            Not possible execute migration to Contessa of version {version} because 
-            your current Contessa version is {contessa.__version__}.
+            Versions do not match. The migration is possible only to the current Contessa version.
+            Use '{contessa.__version__}' as an input parameter.
             """
         )
 

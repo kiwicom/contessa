@@ -2,7 +2,7 @@
 from contessa.db import Connector
 from packaging.version import parse as pv
 
-ALEMBIC_TABLE = "alembic_version"
+ALEMBIC_TABLE = "contessa_alembic_version"
 
 
 class MigrationsResolver:
@@ -78,8 +78,20 @@ class MigrationsResolver:
 
     def get_fallback_version(self):
         """
-        Get fallback version in the case for the Contessa package version do not exist migration.
-        The last package version containing the migration is returned.
+        Get fallback version in the case of non existing migration for the Contessa package version.
+        Returns the last package version containing the migration.
+
+        In the case we have this migrations versions map
+
+        versions_migrations = {
+            "0.1.4": "54f8985b0ee5",
+            "0.1.5": "480e6618700d",
+            "0.1.8": "3w4er8y50yyd",
+            "0.1.9": "034hfa8943hr",
+        }
+
+        and we ask for the fallback version of our current version e.g. 0.1.7., we get 0.1.5. as a result because it is
+        the last version with specified migration before ours.
         """
         keys = list(self.versions_migrations.keys())
         if self.package_version in self.versions_migrations.keys():
@@ -96,12 +108,11 @@ class MigrationsResolver:
             else:
                 return result
 
-    """
-    Get the migration command for alembic. Migration command is a tupple of type of migration and migration hash.
-    E.g. ('upgrade', 'dfgdfg5b0ee5') or ('downgrade', 'dfgdfg5b0ee5')
-    """
-
     def get_migration_to_head(self):
+        """
+        Get the migration command for alembic. Migration command is a tupple of type of migration and migration hash.
+        E.g. ('upgrade', 'dfgdfg5b0ee5') or ('downgrade', 'dfgdfg5b0ee5')
+        """
         if self.is_on_head():
             return None
 
