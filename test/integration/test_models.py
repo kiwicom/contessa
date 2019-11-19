@@ -29,7 +29,8 @@ def test_quality_check_init_row(rule, results, conn: Connector):
 
     assert instance.task_ts == t
     assert instance.attribute == "src"
-    assert instance.rule_name == "not_null"
+    assert instance.rule_name == "not_null_name"
+    assert instance.rule_type == "not_null"
     assert instance.rule_description == "True when data is null."
     assert instance.total_records == 5
     assert instance.failed == 2

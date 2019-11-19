@@ -75,7 +75,7 @@ class SqlRule(Rule):
         )
         if not is_list_of_bool:
             raise ValueError(
-                f"Your query for rule `{self.name}` does not return list of booleans or Nones."
+                f"Your query for rule `{self.name}` of type `{self.type}` does not return list of booleans or Nones."
             )
         return pd.Series([bool(r[0]) for r in results])
 
@@ -83,10 +83,10 @@ class SqlRule(Rule):
 class OneColumnRuleSQL(SqlRule):
     executor_cls = SqlExecutor
 
-    def __init__(self, name, column, description, **kwargs):
+    def __init__(self, name, type, column, description, **kwargs):
         if description == "" or description is None:
             raise TypeError("Description is mandatory")
-        super().__init__(name, description=description, **kwargs)
+        super().__init__(name, type, description=description, **kwargs)
         self.column = column
 
     @property
@@ -102,12 +102,12 @@ class OneColumnRuleSQL(SqlRule):
 
     def __str__(self):
         tf = f"- {self.time_filter}" or ""
-        return f"Rule {self.name} - {self.attribute} {tf}"
+        return f"Rule {self.name} - {self.type} - {self.attribute} {tf}"
 
 
 class CustomSqlRule(SqlRule):
-    def __init__(self, name, sql, description, **kwargs):
-        super().__init__(name, description=description, **kwargs)
+    def __init__(self, name, type, sql, description, **kwargs):
+        super().__init__(name, type, description=description, **kwargs)
         self.custom_sql = sql
 
     @property
@@ -116,8 +116,10 @@ class CustomSqlRule(SqlRule):
 
 
 class NotNullRule(OneColumnRuleSQL):
-    def __init__(self, name, column, description="True when data is null.", **kwargs):
-        super().__init__(name, column, description=description, **kwargs)
+    def __init__(
+        self, name, type, column, description="True when data is null.", **kwargs
+    ):
+        super().__init__(name, type, column, description=description, **kwargs)
 
     @property
     def sql(self):
@@ -130,12 +132,13 @@ class GtRule(OneColumnRuleSQL):
     def __init__(
         self,
         name,
+        type,
         column,
         value,
         description="True when data is greater than input value.",
         **kwargs,
     ):
-        super().__init__(name, column, description=description, **kwargs)
+        super().__init__(name, type, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -149,12 +152,13 @@ class GteRule(OneColumnRuleSQL):
     def __init__(
         self,
         name,
+        type,
         column,
         value,
         description="True when data is greater or even than input value.",
         **kwargs,
     ):
-        super().__init__(name, column, description=description, **kwargs)
+        super().__init__(name, type, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -168,12 +172,13 @@ class NotRule(OneColumnRuleSQL):
     def __init__(
         self,
         name,
+        type,
         column,
         value,
         description="True when data is not input value.",
         **kwargs,
     ):
-        super().__init__(name, column, description=description, **kwargs)
+        super().__init__(name, type, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -188,12 +193,13 @@ class LtRule(OneColumnRuleSQL):
     def __init__(
         self,
         name,
+        type,
         column,
         value,
         description="True when data is less than input value.",
         **kwargs,
     ):
-        super().__init__(name, column, description=description, **kwargs)
+        super().__init__(name, type, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -207,12 +213,13 @@ class LteRule(OneColumnRuleSQL):
     def __init__(
         self,
         name,
+        type,
         column,
         value,
         description="True when data is less or even than input value.",
         **kwargs,
     ):
-        super().__init__(name, column, description=description, **kwargs)
+        super().__init__(name, type, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -226,12 +233,13 @@ class EqRule(OneColumnRuleSQL):
     def __init__(
         self,
         name,
+        type,
         column,
         value,
         description="True when data is the same as input value.",
         **kwargs,
     ):
-        super().__init__(name, column, description=description, **kwargs)
+        super().__init__(name, type, column, description=description, **kwargs)
         self.value = value
 
     @property
@@ -263,11 +271,11 @@ RULES = {
 }
 
 
-def get_rule_cls(name):
+def get_rule_cls(key):
     aval_rules = RULES.keys()
-    if name not in aval_rules:
+    if key not in aval_rules:
         raise ValueError(
-            f"I dont know this kind of rule - '{name}'. "
+            f"I dont know this kind of rule - '{key}'. "
             f"Possible rules are - {list(aval_rules)}"
         )
-    return RULES[name]
+    return RULES[key]

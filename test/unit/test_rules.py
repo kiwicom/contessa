@@ -12,7 +12,8 @@ def test_rule_context_formatted_in_where():
             return "select a, b, c from {{table_fullname}}_{{ts_nodash}}"
 
     r = TestRule(
-        name="test_rule",
+        name="test_rule_name",
+        type="test_rule_type",
         condition="created_at >= '{{ts_nodash}}'::timestamptz - interval '10 minutes'",
         description="Greater than 0 when bags <> 0",
     )

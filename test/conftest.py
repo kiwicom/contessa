@@ -18,7 +18,7 @@ class FakedDatetime(datetime):
 
 @pytest.fixture(scope="session")
 def rule():
-    return NotNullRule("not_null", "src")
+    return NotNullRule("not_null_name", "not_null", "src")
 
 
 @pytest.fixture(scope="session")
