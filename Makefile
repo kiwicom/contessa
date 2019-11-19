@@ -12,3 +12,6 @@ test:
 
 black:
 	docker run --rm -it -v $(curr_dir)/test:/tmp/test -v $(curr_dir)/contessa:/tmp/contessa kiwicom/black:19.10b0 black /tmp/test /tmp/contessa
+	
+bash:
+	docker run --rm -it -v $(curr_dir)/contessa:/app/ --entrypoint=/bin/sh contessa -c bash

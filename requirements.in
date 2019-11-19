@@ -3,3 +3,6 @@ psycopg2-binary>=2.7
 pandas
 Jinja2
 pybigquery
+alembic
+click
+packaging
