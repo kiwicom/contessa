@@ -48,7 +48,7 @@ def test_executor_raw_df(e):
 
 
 def test_executor_filter_df(e, monkeypatch):
-    rule = NotNullRule("not_null", "src", time_filter="created_at")
+    rule = NotNullRule("not_null_name", "not_null", "src", time_filter="created_at")
     monkeypatch.setattr("contessa.executor.datetime", FakedDatetime)
     df = e.filter_df(rule)
     expected = pd.DataFrame(
