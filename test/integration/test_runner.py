@@ -113,6 +113,7 @@ class TestDataQualityOperator(unittest.TestCase):
                 "name": "sql_name",
                 "type": "sql",
                 "sql": sql,
+                "column": "src_dst",
                 "description": "test sql rule",
             },
             {"name": "not_name", "type": "not", "column": "src", "value": "dst"},
@@ -146,7 +147,7 @@ class TestDataQualityOperator(unittest.TestCase):
         sql_rule = rows.loc[2]
         self.assertEqual(sql_rule["failed"], 1)
         self.assertEqual(sql_rule["passed"], 3)
-        self.assertEqual(sql_rule["attribute"], None)
+        self.assertEqual(sql_rule["attribute"], "src_dst")
 
         not_column_rule = rows.loc[3]
         self.assertEqual(not_column_rule["failed"], 1)
@@ -175,6 +176,7 @@ class TestDataQualityOperator(unittest.TestCase):
                 "name": "sql_name",
                 "type": "sql",
                 "sql": sql,
+                "column": "src_dst",
                 "description": "test sql rule",
             },
         ]
@@ -202,7 +204,7 @@ class TestDataQualityOperator(unittest.TestCase):
         sql_rule = rows.loc[1]
         self.assertEqual(sql_rule["failed"], 1)
         self.assertEqual(sql_rule["passed"], 0)
-        self.assertEqual(sql_rule["attribute"], None)
+        self.assertEqual(sql_rule["attribute"], "src_dst")
 
     def test_result_table_without_prefix(self):
         rules = [

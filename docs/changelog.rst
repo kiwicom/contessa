@@ -9,6 +9,7 @@ Contessa Changelog
 - add debug sql prints for rules
 - add BigQuery support
 - add ConsistencyChecker, supports rowcount comparison
+- add "column" to CustomSQLRule. will be saved in quality check as "attribute"
 
 
 2019-10-09; 0.1.4;

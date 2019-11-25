@@ -189,7 +189,7 @@ def test_sql_apply(conn, ctx):
         src = 'aaa'
         from {{ table_fullname }}
     """
-    rule = CustomSqlRule("sql_test_name", "sql_test", sql, "example description")
+    rule = CustomSqlRule("sql_test_name", "sql_test", "src", sql, "example description")
     results = rule.apply(conn)
     expected = pd.Series([False, True])
     assert list(expected) == list(results)
@@ -220,7 +220,9 @@ def test_sql_apply_extra_ctx(conn, ctx):
         from {{ dst_table }}
         where created between timestamptz '{{task_ts}}' and timestamptz '{{task_ts}}' + interval '60 seconds'
     """
-    rule = CustomSqlRule("sql_test_name", "sql_test", sql, "example description")
+    rule = CustomSqlRule(
+        "sql_test_name", "sql_test", "col1", sql, "example description"
+    )
     results = rule.apply(conn)
     expected = pd.Series([False, True])
     assert list(expected) == list(results)

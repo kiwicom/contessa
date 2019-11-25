@@ -102,7 +102,8 @@ class ContessaRunner:
         finally:
             session.close()
 
-    def build_rules(self, normalized_rules):
+    @staticmethod
+    def build_rules(normalized_rules):
         """
         Construct rules classes from user definition that are dicts.
         Raises if there are bad arguments for a certain rule.
@@ -110,7 +111,7 @@ class ContessaRunner:
         """
         ret = []
         for rule_def in normalized_rules:
-            rule_cls = self.pick_rule_cls(rule_def)
+            rule_cls = ContessaRunner.pick_rule_cls(rule_def)
             try:
                 r = rule_cls(**rule_def)
             except Exception as e:
@@ -120,7 +121,8 @@ class ContessaRunner:
                 ret.append(r)
         return ret
 
-    def pick_rule_cls(self, rule_def):
+    @staticmethod
+    def pick_rule_cls(rule_def):
         """
         Get rule class based on its type that was input by user.
         :param rule_def: dict
