@@ -105,9 +105,9 @@ class OneColumnRuleSQL(SqlRule):
         return f"Rule {self.name} - {self.type} - {self.attribute} {tf}"
 
 
-class CustomSqlRule(SqlRule):
-    def __init__(self, name, type, sql, description, **kwargs):
-        super().__init__(name, type, description=description, **kwargs)
+class CustomSqlRule(OneColumnRuleSQL):
+    def __init__(self, name, type, column, sql, description, **kwargs):
+        super().__init__(name, type, column, description, **kwargs)
         self.custom_sql = sql
 
     @property
