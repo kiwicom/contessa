@@ -7,7 +7,7 @@ from test.integration.conftest import TEST_DB_URI
 from contessa.models import DQBase
 
 DATA_QUALITY_SCHEMA = "data_quality_test"
-ALEMBIC_TABLE = "contessa_alembic_version"
+MIGRATION_TABLE = "contessa_alembic_version"
 DATA_QUALITY_TABLE_1 = "quality_check_example_table"
 DATA_QUALITY_TABLE_2 = "quality_check_another_table"
 SQLALCHEMY_URL = "postgresql://postgres:postgres@postgres:5432/test_db"
@@ -68,7 +68,7 @@ class TestMigrationsResolver(unittest.TestCase):
         """
 
         sql = [
-            f"DROP SCHEMA IF EXISTS {DATA_QUALITY_SCHEMA} CASCADE;"
+            f"DROP SCHEMA IF EXISTS {DATA_QUALITY_SCHEMA} CASCADE;",
             f"CREATE SCHEMA IF NOT EXISTS {DATA_QUALITY_SCHEMA};",
             get_quality_table_creation_script_0_1_4(
                 DATA_QUALITY_SCHEMA, DATA_QUALITY_TABLE_1
@@ -92,6 +92,30 @@ class TestMigrationsResolver(unittest.TestCase):
         """
         self.conn.execute(f"DROP schema data_quality_test CASCADE;")
         DQBase.metadata.clear()
+
+    def test_migration_table_is_created(self):
+        try:
+            # we must use -f (force) in the case that contessa.__version__ possibly do not match our testing
+            # migration version
+            migration.main(
+                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.1.5", "-f"]
+            )
+
+        except SystemExit as e:
+            print(e.args[0])
+
+        migrtion_table_exists = self.conn.get_records(
+            f"""
+            SELECT EXISTS (
+               SELECT 1
+               FROM   information_schema.tables
+               WHERE  table_schema = '{DATA_QUALITY_SCHEMA}'
+               AND    table_name = '{MIGRATION_TABLE}'
+            );            
+            """
+        )
+
+        assert migrtion_table_exists
 
     def test_migration_to_0_1_5(self):
         try:

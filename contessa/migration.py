@@ -1,8 +1,7 @@
-# Python script that will apply the migrations up to head
 from contessa.db import Connector
 from packaging.version import parse as pv
 
-ALEMBIC_TABLE = "contessa_alembic_version"
+MIGRATION_TABLE = "contessa_alembic_version"
 
 
 class MigrationsResolver:
@@ -50,7 +49,7 @@ class MigrationsResolver:
                SELECT 1
                FROM   information_schema.tables
                WHERE  table_schema = '{self.schema}'
-               AND    table_name = '{ALEMBIC_TABLE}'
+               AND    table_name = '{MIGRATION_TABLE}'
            );
             """
         )
@@ -62,7 +61,9 @@ class MigrationsResolver:
         """
         if self.migrations_table_exists() is False:
             return None
-        version = self.conn.get_records(f"select * from {self.schema}.{ALEMBIC_TABLE}")
+        version = self.conn.get_records(
+            f"select * from {self.schema}.{MIGRATION_TABLE}"
+        )
         return version.first()[0]
 
     def is_on_head(self):
