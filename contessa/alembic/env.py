@@ -48,12 +48,14 @@ def run_migrations_offline():
 
     url = config.get_main_option("sqlalchemy.url")
     default_schema = config.get_main_option("schema")
+    version_table = config.get_main_option("version_table")
 
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table=version_table,
         version_table_schema=default_schema,
         include_schemas=True,
     )
@@ -72,6 +74,7 @@ def run_migrations_online():
 
     url = config.get_main_option("sqlalchemy.url")
     default_schema = config.get_main_option("schema")
+    version_table = config.get_main_option("version_table")
 
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
@@ -84,6 +87,7 @@ def run_migrations_online():
             url=url,
             connection=connection,
             target_metadata=target_metadata,
+            version_table=version_table,
             version_table_schema=default_schema,
             include_schemas=True,
         )

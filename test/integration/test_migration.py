@@ -6,7 +6,7 @@ from contessa.models import DQBase
 from contessa.migration import MigrationsResolver
 
 DATA_QUALITY_SCHEMA = "data_quality_test"
-ALEMBIC_TABLE = "contessa_alembic_version"
+MIGRATION_TABLE = "contessa_alembic_version"
 DATA_QUALITY_TABLE_1 = "quality_check_example_table"
 DATA_QUALITY_TABLE_2 = "quality_check_another_table"
 SQLALCHEMY_URL = "postgresql://postgres:postgres@postgres:5432/test_db"
@@ -129,13 +129,13 @@ class TestMigrationsResolver(unittest.TestCase):
                 DATA_QUALITY_SCHEMA, DATA_QUALITY_TABLE_2
             ),
             f"""
-                    create table {DATA_QUALITY_SCHEMA}.{ALEMBIC_TABLE}
+                    create table {DATA_QUALITY_SCHEMA}.{MIGRATION_TABLE}
                         (
                             version_num varchar(32) not null
                                 constraint alembic_version_pkc
                                     primary key
                         );
-                        INSERT INTO {DATA_QUALITY_SCHEMA}.{ALEMBIC_TABLE} (version_num) VALUES ('0.1.4-hash');
+                        INSERT INTO {DATA_QUALITY_SCHEMA}.{MIGRATION_TABLE} (version_num) VALUES ('0.1.4-hash');
                     """,
         ]
         self.conn = Connector(TEST_DB_URI)
