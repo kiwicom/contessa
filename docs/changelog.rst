@@ -1,8 +1,9 @@
 Contessa Changelog
 ============================================
 
-2019-XX-XX; 0.2.0;
+2019-04-12; 0.2.0;
 --------------------------------------------
+- *breaking change* - output data schema change - name renamed to type, added name. Do the :ref:`migration` before use this version. 
 - refactor rules to use jinja2 as templating system
 - allow to configure time interval in `time_filter`
 - add docs - https://contessa.readthedocs.io/en/latest/

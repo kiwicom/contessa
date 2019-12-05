@@ -14,6 +14,6 @@ Index
    features
    quality_check
    consistency_check
-   migrations
+   migration
    
    changelog

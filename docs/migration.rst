@@ -1,6 +1,6 @@
-..  _migrations:
+..  _migration:
 
-Migrations
+Migration
 =========================
 
 Contessa stores quality check results to the database in the defined data model. 
@@ -12,7 +12,7 @@ The schema change is not present in all Contessa version changes. Please, be car
 Before the migration, we recommend some preparation steps.
 
 How to prepare before migration
--------------------------
+--------------------------------
 - back up your current quality check result tables that you plan to migrate
 - the migration can create, rename, add and delete columns and change the data - be sure consumers and services built on top of data are prepared for this change
 
