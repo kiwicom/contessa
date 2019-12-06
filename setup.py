@@ -17,7 +17,7 @@ setup(
         "psycopg2>=2.7",
         "pandas>=0.24.2",
         "jinja2>=2.10.1",
-        "alembic>=1.3.0",
+        "alembic==0.8.10",
         "click>=7.0",
         "packaging>=19.2",
     ],
