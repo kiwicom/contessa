@@ -60,7 +60,7 @@ def get_quality_table_creation_script_0_1_4_invalid(schema, table_name):
                 """
 
 
-# test of migration from v 0.1.4. to 0.2.0
+# test of migration from v 0.1.4. to 0.2.1
 class TestMigrationsResolver(unittest.TestCase):
     def setUp(self):
         """
@@ -98,7 +98,7 @@ class TestMigrationsResolver(unittest.TestCase):
             # we must use -f (force) in the case that contessa.__version__ possibly do not match our testing
             # migration version
             migration.main(
-                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.2.0", "-f"]
+                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.2.1", "-f"]
             )
 
         except SystemExit as e:
@@ -117,12 +117,12 @@ class TestMigrationsResolver(unittest.TestCase):
 
         assert migrtion_table_exists
 
-    def test_migration_to_0_2_0(self):
+    def test_migration_to_0_2_1(self):
         try:
             # we must use -f (force) in the case that contessa.__version__ possibly do not match our testing
             # migration version
             migration.main(
-                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.2.0", "-f"]
+                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.2.1", "-f"]
             )
 
         except SystemExit as e:
@@ -195,7 +195,7 @@ class TestMigrationsResolver(unittest.TestCase):
         assert rule_type_is_filled_result.first()[0] == 3
 
 
-# test of migration from v 0.1.4. to 0.2.0 transaction
+# test of migration from v 0.1.4. to 0.2.1 transaction
 class TestMigrationsResolverTransaction(unittest.TestCase):
     def setUp(self):
         """
@@ -228,10 +228,10 @@ class TestMigrationsResolverTransaction(unittest.TestCase):
         self.conn.execute(f"DROP schema data_quality_test CASCADE;")
         DQBase.metadata.clear()
 
-    def test_migration_to_0_2_0_transaction(self):
+    def test_migration_to_0_2_1_transaction(self):
         try:
             migration.main(
-                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.2.0"]
+                ["-u", SQLALCHEMY_URL, "-s", DATA_QUALITY_SCHEMA, "-v", "0.2.1"]
             )
         except SystemExit as ex_exit:
             print(ex_exit.args[0])
