@@ -47,7 +47,7 @@ def upgrade():
             schema=schema,
         )
 
-        op.add_column(table, sa.Column("rule_name", sa.VARCHAR(50)), schema=schema)
+        op.add_column(table, sa.Column("rule_name", sa.TEXT), schema=schema)
 
 
 def downgrade():
