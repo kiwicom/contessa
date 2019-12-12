@@ -1,7 +1,7 @@
 Contessa Changelog
 ============================================
 
-2019-04-12; 0.2.0;
+2019-04-12; 0.2.3;
 --------------------------------------------
 - *breaking change* - output data schema change - name renamed to type, added name. Do the :ref:`migration` before use this version. 
 - refactor rules to use jinja2 as templating system
