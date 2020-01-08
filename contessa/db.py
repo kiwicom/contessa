@@ -50,11 +50,8 @@ class Connector:
         """
         Create table for given table class if it doesn't exists.
         """
-        try:
-            table.create(bind=self.engine)
-            logging.info(f"Created table {table.name}.")
-        except sqlalchemy.exc.ProgrammingError:
-            logging.info(f"Table {table.name} already exists. Skipping creation.")
+        table.create(bind=self.engine, checkfirst=True)
+        logging.info(f"Created table {table.name}.")
 
     def get_column_names(self, table_full_name: str) -> List:
         schema_query = f"""
