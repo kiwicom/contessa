@@ -1,7 +1,6 @@
 import logging
 from typing import List, Dict, Optional
 
-import sqlalchemy
 from datetime import datetime
 
 from contessa.base_rules import Rule
@@ -41,7 +40,7 @@ class ContessaRunner:
         rules = self.build_rules(normalized_rules)
         objs = self.do_quality_checks(quality_check_class, rules, context)
 
-        self.insert(objs)
+        self.conn.upsert(objs)
 
     @staticmethod
     def get_context(check_table: Table, context: Optional[Dict] = None) -> Dict:
@@ -76,24 +75,6 @@ class ContessaRunner:
         obj = dq_cls()
         obj.init_row(rule, results, self.conn, context)
         return obj
-
-    def insert(self, objs):
-        """
-        Insert QualityCheck objects using sqlalchemy. If there is integrity error, skip it.
-        """
-        logging.info(f"Inserting {len(objs)} results.")
-        session = self.conn.make_session()
-        try:
-            session.add_all(objs)
-            session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            ts = objs[0].task_ts
-            logging.info(
-                f"This quality check ({ts}) was already done. Skipping it this time."
-            )
-            session.rollback()
-        finally:
-            session.close()
 
     @staticmethod
     def build_rules(normalized_rules):

@@ -52,7 +52,7 @@ class ConsistencyChecker:
 
         quality_check_class = create_default_check_class(result_table)
         self.right_conn.ensure_table(quality_check_class.__table__)
-        self.insert(quality_check_class, result)
+        self.upsert(quality_check_class, result)
 
     @staticmethod
     def get_context(
@@ -111,22 +111,9 @@ class ConsistencyChecker:
         result = [r for r in conn.get_records(query)]
         return result
 
-    def insert(self, dc_cls, result):
-        """
-        Insert ConsistencyCheck objects using sqlalchemy. If there is integrity error, skip it.
-        """
-        logging.info(f"Inserting 1 result.")
-        session = self.right_conn.make_session()
+    def upsert(self, dc_cls, result):
         obj = dc_cls()
         obj.init_row(**result)
-        try:
-            session.add(obj)
-            session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            ts = obj.task_ts
-            logging.info(
-                f"This quality check ({ts}) was already done. Skipping it this time."
-            )
-            session.rollback()
-        finally:
-            session.close()
+        self.right_conn.upsert(
+            [obj,]
+        )
