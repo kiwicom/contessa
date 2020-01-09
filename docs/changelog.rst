@@ -8,6 +8,7 @@ Contessa Changelog
 - remove Enum for Checks. Prefix of the table is in `_table_prefix` attribute on models
 - change migration template. do migration for all the models separately if needed
 - refactor migration tests. introduce MigrationTestCase class.
+- updates of the quality checks are now possible. you can rerun same check and it will be updated.
 
 *Migration needed*
 - add new migration. Add nullables + default time_filter ('not_set') for QualityCheck and
