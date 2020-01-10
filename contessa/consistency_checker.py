@@ -9,14 +9,14 @@ from contessa.models import (
     create_default_check_class,
     Table,
     ResultTable,
-    DataQualityDimension,
-)
+    ConsistencyCheck)
 
 
 class ConsistencyChecker:
     """
     Checks consistency of the sync between two tables.
     """
+    model_cls = ConsistencyCheck
 
     COUNT = "count"
     DIFF = "difference"
@@ -41,7 +41,7 @@ class ConsistencyChecker:
     ):
         left_check_table = Table(**left_check_table)
         right_check_table = Table(**right_check_table)
-        result_table = ResultTable(**result_table)
+        result_table = ResultTable(**result_table, model_cls=self.model_cls)
         context = self.get_context(left_check_table, right_check_table, context)
 
         result = self.do_consistency_check(
@@ -49,7 +49,7 @@ class ConsistencyChecker:
         )
 
         quality_check_class = create_default_check_class(
-            result_table, data_quality_dimension=DataQualityDimension.CONSISTENCY
+            result_table
         )
         self.right_conn.ensure_table(quality_check_class.__table__)
         self.insert(quality_check_class, result)
@@ -87,7 +87,7 @@ class ConsistencyChecker:
             right_check_table.fullname, self.right_conn, method
         )
         return {
-            "check": {"name": method, "description": ""},
+            "check": {"type": method, "description": "", "name": method},  # todo - delete name
             "status": left_result == right_result,
             "left_table_name": left_check_table.fullname,
             "right_table_name": right_check_table.fullname,
@@ -119,7 +119,7 @@ class ConsistencyChecker:
             session.add(obj)
             session.commit()
         except sqlalchemy.exc.IntegrityError:
-            ts = result.task_ts
+            ts = obj.task_ts
             logging.info(
                 f"This quality check ({ts}) was already done. Skipping it this time."
             )

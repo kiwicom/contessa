@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from statistics import median
-from typing import Dict, Union
-from enum import Enum
+from typing import Dict
 
 import pandas as pd
 from sqlalchemy import and_, Column, DateTime, MetaData, text, UniqueConstraint
@@ -21,19 +20,6 @@ from sqlalchemy.ext.declarative import (
 from contessa.base_rules import Rule
 from contessa.db import Connector
 
-
-class DataQualityDimension(Enum):
-    QUALITY = "quality"
-    CONSISTENCY = "consistency"
-
-    @classmethod
-    def from_value(cls, dimension: str):
-        for item in cls:
-            if item.value == dimension:
-                return DataQualityDimension[item.name]
-        raise ValueError("Invalid data quality dimension.")
-
-
 # default schema for results is `data_quality`, but it can be overridden by passing
 # ResultTable to runner. constructing concrete model for QualityCheck (that's abstract) will
 # swap the schemas before creation - see `create_default_quality_check_class`
@@ -44,8 +30,8 @@ class QualityCheck(AbstractConcreteBase, DQBase):
     """
     Representation of abstract quality check table.
     """
-
     __abstract__ = True
+    _table_prefix = "quality_check"
 
     id = Column(BIGINT, primary_key=True)
     attribute = Column(TEXT)
@@ -87,7 +73,7 @@ class QualityCheck(AbstractConcreteBase, DQBase):
                 "rule_type",
                 "task_ts",
                 "time_filter",
-                name=f"{cls.__tablename__}_unique_quality_check",
+                name=f"{cls.__tablename__}_unique",
             ),
         )
 
@@ -160,6 +146,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
     """
 
     __abstract__ = True
+    _table_prefix = "consistency_check"
 
     id = Column(BIGINT, primary_key=True)
     type = Column(TEXT)
@@ -194,7 +181,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
                 "right_table",
                 "task_ts",
                 "time_filter",
-                name=f"{cls.__tablename__}_unique_consistency_check",
+                name=f"{cls.__tablename__}_unique",
             ),
         )
 
@@ -209,6 +196,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         """
         Set result to consistency check object.
         """
+        self.type = check["type"]
         self.task_ts = context["task_ts"]
         self.name = check["name"]
         self.description = check["description"]
@@ -238,8 +226,10 @@ class ResultTable(Table):
     Can be overridden by `table_name`.
     """
 
-    def __init__(self, schema_name, table_name, use_prefix=True):
-        table_name = f"quality_check_{table_name}" if use_prefix else table_name
+    def __init__(self, schema_name, table_name, model_cls):
+        self.model_cls = model_cls
+        prefix = model_cls._table_prefix
+        table_name = f"{prefix}_{table_name}"
         super().__init__(schema_name, table_name)
 
     def to_camel_case(self, snake_str):
@@ -258,7 +248,7 @@ class ResultTable(Table):
 
 
 def create_default_check_class(
-    result_table: ResultTable, data_quality_dimension: Union[DataQualityDimension, str]
+    result_table: ResultTable
 ):
     """
     This will construct type/class (not object) that will have special name that its prefixed
@@ -274,22 +264,15 @@ def create_default_check_class(
     :return: class with dynamically created name
     """
 
-    if type(data_quality_dimension) == str:
-        data_quality_dimension = DataQualityDimension.from_value(data_quality_dimension)
-
     attributedict = {
         "__tablename__": result_table.table_name,
         "id": Column(BIGINT, primary_key=True),
         "__mapper_args__": {
-            "polymorphic_identity": f"{result_table.table_name}",
+            "polymorphic_identity": result_table.table_name,
             "concrete": True,
         },
     }
-    if data_quality_dimension == DataQualityDimension.CONSISTENCY:
-        check_class = ConsistencyCheck
-    else:
-        check_class = QualityCheck
-    cls = type(result_table.clsname, (check_class,), attributedict)
+    cls = type(result_table.clsname, (result_table.model_cls,), attributedict)
     cls.metadata.schema = result_table.schema_name
     cls.__table__.schema = result_table.schema_name
     return cls
