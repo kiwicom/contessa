@@ -5,9 +5,12 @@ import pytest
 from contessa.db import Connector
 
 TEST_DB_URI = os.environ.get("TEST_DB_URI")
-
 if not TEST_DB_URI:
     raise ValueError("To run integration test set `TEST_DB_URI` env var.")
+
+ALEMBIC_INI_PATH = os.environ.get("ALEMBIC_INI_PATH")
+if not ALEMBIC_INI_PATH:
+    raise ValueError("To run integration test set `ALEMBIC_INI_PATH` env var.")
 
 
 @pytest.fixture()

@@ -17,6 +17,7 @@ from sqlalchemy.ext.declarative import (
     declared_attr,
 )
 
+from contessa.settings import TIME_FILTER_DEFAULT
 from contessa.base_rules import Rule
 from contessa.db import Connector
 
@@ -30,13 +31,14 @@ class QualityCheck(AbstractConcreteBase, DQBase):
     """
     Representation of abstract quality check table.
     """
+
     __abstract__ = True
     _table_prefix = "quality_check"
 
     id = Column(BIGINT, primary_key=True)
-    attribute = Column(TEXT)
-    rule_name = Column(TEXT)
-    rule_type = Column(TEXT)
+    attribute = Column(TEXT, nullable=False)
+    rule_name = Column(TEXT, nullable=False)
+    rule_type = Column(TEXT, nullable=False)
     rule_description = Column(TEXT)
     total_records = Column(INTEGER)
 
@@ -49,7 +51,12 @@ class QualityCheck(AbstractConcreteBase, DQBase):
     passed_percentage = Column(DOUBLE_PRECISION)
 
     status = Column(TEXT)
-    time_filter = Column(TEXT)
+    time_filter = Column(
+        TEXT,
+        default=TIME_FILTER_DEFAULT,
+        server_default=TIME_FILTER_DEFAULT,
+        nullable=False,
+    )
     task_ts = Column(TIMESTAMP(timezone=True), nullable=False, index=True)
     created_at = Column(
         DateTime(timezone=True),
@@ -149,14 +156,19 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
     _table_prefix = "consistency_check"
 
     id = Column(BIGINT, primary_key=True)
-    type = Column(TEXT)
-    name = Column(TEXT)
+    type = Column(TEXT, nullable=False)
+    name = Column(TEXT, nullable=False)
     description = Column(TEXT)
-    left_table = Column(TEXT)
-    right_table = Column(TEXT)
+    left_table = Column(TEXT, nullable=False)
+    right_table = Column(TEXT, nullable=False)
 
     status = Column(TEXT)
-    time_filter = Column(TEXT)
+    time_filter = Column(
+        TEXT,
+        nullable=False,
+        default=TIME_FILTER_DEFAULT,
+        server_default=TIME_FILTER_DEFAULT,
+    )
     task_ts = Column(TIMESTAMP(timezone=True), nullable=False, index=True)
     created_at = Column(
         DateTime(timezone=True),
@@ -208,7 +220,6 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         return f"Rule ({self.type} - {self.name} - {self.task_ts})"
 
 
-# todo - maybe create also CheckTable
 class Table:
     def __init__(self, schema_name, table_name):
         self.schema_name = schema_name
@@ -247,9 +258,7 @@ class ResultTable(Table):
         return camel_case[0].title() + camel_case[1:]
 
 
-def create_default_check_class(
-    result_table: ResultTable
-):
+def create_default_check_class(result_table: ResultTable):
     """
     This will construct type/class (not object) that will have special name that its prefixed
     with its table. It's better because sqlalchemy can yell somethings if we would use same class

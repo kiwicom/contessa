@@ -11,7 +11,7 @@ setup(
     author_email="mario.hunka@kiwi.com",
     url="https://github.com/kiwicom/contessa",
     packages=find_packages(),
-    package_data={"contessa": ["alembic.ini", "alembic/*", "alembic/**/*"],},
+    package_data={"contessa": ["alembic.ini", "alembic/*", "alembic/**/*"]},
     install_requires=[
         "sqlalchemy>=1.2",
         "psycopg2>=2.7",
@@ -24,7 +24,7 @@ setup(
     tests_require=["pytest"],
     python_requires=">=3.6",
     entry_points={
-        "console_scripts": ["contessa-migrate=contessa.migration_runner:main"],
+        "console_scripts": ["contessa-migrate=contessa.migration_runner:main"]
     },
     classifiers=[
         "Operating System :: OS Independent",

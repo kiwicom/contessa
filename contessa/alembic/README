@@ -1,1 +1,10 @@
-Generic single-database configuration.
+How to create a new migration
+-----
+
+1. Go to contessa dir
+2. Run `alembic revision -m "<name_of_the_migration>"`
+3. It will generate script for iterating all the quality tables by each quality model.
+   E.g. QualityCheck and ConsistencyCheck models.
+4. Code your migration for models you have changed.
+5. Write integration tests. (use `MigrationTestCase`)
+6. Profit

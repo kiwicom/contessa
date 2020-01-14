@@ -9,13 +9,15 @@ from contessa.models import (
     create_default_check_class,
     Table,
     ResultTable,
-    ConsistencyCheck)
+    ConsistencyCheck,
+)
 
 
 class ConsistencyChecker:
     """
     Checks consistency of the sync between two tables.
     """
+
     model_cls = ConsistencyCheck
 
     COUNT = "count"
@@ -48,9 +50,7 @@ class ConsistencyChecker:
             method, left_check_table, right_check_table, context
         )
 
-        quality_check_class = create_default_check_class(
-            result_table
-        )
+        quality_check_class = create_default_check_class(result_table)
         self.right_conn.ensure_table(quality_check_class.__table__)
         self.insert(quality_check_class, result)
 
@@ -87,7 +87,11 @@ class ConsistencyChecker:
             right_check_table.fullname, self.right_conn, method
         )
         return {
-            "check": {"type": method, "description": "", "name": method},  # todo - delete name
+            "check": {
+                "type": method,
+                "description": "",
+                "name": method,
+            },  # todo - delete name
             "status": left_result == right_result,
             "left_table_name": left_check_table.fullname,
             "right_table_name": right_check_table.fullname,

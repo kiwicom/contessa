@@ -7,19 +7,12 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
-from contessa.models import (
-    create_default_check_class,
-    Table,
-    ResultTable,
-    QualityCheck)
+from contessa.models import create_default_check_class, Table, ResultTable, QualityCheck
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 
 
 class ContessaRunner:
-    """
-    todo - rewrite comments
-    """
     model_cls = QualityCheck
 
     def __init__(self, conn_uri_or_engine, special_qc_map=None):
@@ -144,8 +137,6 @@ class ContessaRunner:
                 f"Using {quality_check_class.__name__} as quality check class."
             )
         else:
-            quality_check_class = create_default_check_class(
-                result_table
-            )
+            quality_check_class = create_default_check_class(result_table)
             logging.info("Using default QualityCheck class.")
         return quality_check_class

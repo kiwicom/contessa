@@ -8,13 +8,16 @@ from contessa.models import (
     create_default_check_class,
     ResultTable,
     DQBase,
-    QualityCheck)
+    QualityCheck,
+)
 
 
 def test_quality_check_init_row(rule, results, conn: Connector):
     DQBase.metadata.clear()
     qc = create_default_check_class(
-        ResultTable(schema_name="data_quality", table_name="booking", model_cls=QualityCheck),
+        ResultTable(
+            schema_name="data_quality", table_name="booking", model_cls=QualityCheck
+        )
     )
     assert qc.__tablename__ == "quality_check_booking"
     assert qc.__name__ == "DataQualityQualityCheckBooking"
@@ -43,7 +46,7 @@ def test_quality_check_init_row(rule, results, conn: Connector):
 def test_set_medians(conn: Connector, monkeypatch):
     DQBase.metadata.clear()
     qc = create_default_check_class(
-        ResultTable(schema_name="data_quality", table_name="t", model_cls=QualityCheck),
+        ResultTable(schema_name="data_quality", table_name="t", model_cls=QualityCheck)
     )
     qc.__table__.create(conn.engine)
     instance = qc()
