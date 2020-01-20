@@ -11,18 +11,8 @@ Contessa Changelog
 
 *Migration needed*
 - add new migration. Add nullables + default time_filter ('not_set') for QualityCheck and
-  ConsistencyCheck models.
-
-Steps:
-
-1. Update default values for time_filter
-```sql
-update {t}
-set time_filter = 'not_set'
-where time_filter is null;
-```
-
-2. `contessa-migrate -u $DB_URI -s data_quality -v 0.2.5`
+  ConsistencyCheck models. Run this command:
+  `contessa-migrate -u $DB_URI -s data_quality -v 0.2.5`
 
 
 Note we're setting nullables for columns bellow. Make sure you don't have null values in them.

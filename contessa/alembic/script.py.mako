@@ -5,6 +5,8 @@ Revises: ${down_revision | comma,n}
 Create Date: ${create_date}
 
 """
+from typing import List
+
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import create_engine, inspect
@@ -35,7 +37,7 @@ def get(name):
     return get_config().get_main_option(name)
 
 
-def get_quality_tables(table_prefix):
+def get_quality_tables(table_prefix) -> List[str]:
     url = get("sqlalchemy.url")
     schema = get("schema")
 

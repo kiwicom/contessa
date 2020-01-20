@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from alembic.config import Config
@@ -374,41 +373,30 @@ class TestMigrationTo025(MigrationTestCase):
         self.CONSISTENCY_TABLE_1 = ResultTable(
             DATA_QUALITY_SCHEMA, "table_2", ConsistencyCheck
         )
-
         sql = [
             f"DROP SCHEMA IF EXISTS {DATA_QUALITY_SCHEMA} CASCADE;",
             f"CREATE SCHEMA IF NOT EXISTS {DATA_QUALITY_SCHEMA};",
             self.ddl_quality_check_0_2_4(self.QUALITY_TABLE_1),
             self.ddl_consistency_check_0_2_4(self.CONSISTENCY_TABLE_1),
+            f"""
+                INSERT INTO {self.QUALITY_TABLE_1.fullname}(
+                    attribute, rule_name, rule_type, rule_description, total_records,
+                    time_filter, task_ts)
+                VALUES('a', 'stuff', 'not_null', 'This is the rule.', 10, NULL,
+                    \'{FakedDatetime.now().isoformat()}\');
+            """
+            f"""
+                INSERT INTO {self.CONSISTENCY_TABLE_1.fullname}(
+                    type, name, description, left_table, right_table, status, time_filter, task_ts
+                )
+                VALUES(
+                    \'{ConsistencyChecker.COUNT}\', 'hello', 'aa', 'tmp.a', 'tmp.b', 'hello',
+                    NULL, \'{FakedDatetime.now().isoformat()}\'
+                );
+            """,
         ]
         for s in sql:
             self.conn.execute(s)
-
-        qc_cls = create_default_check_class(self.QUALITY_TABLE_1)
-        q = qc_cls(
-            attribute="a",
-            rule_name="stuff",
-            rule_type="not_null",
-            rule_description="This is the rule.",
-            total_records=10,
-            time_filter=TIME_FILTER_DEFAULT,
-            task_ts=FakedDatetime.now(),
-        )
-        cc_cls = create_default_check_class(self.CONSISTENCY_TABLE_1)
-        c = cc_cls(
-            type=ConsistencyChecker.COUNT,
-            name="hello",
-            description="aa",
-            left_table="tmp.a",
-            right_table="tmp.b",
-            status="hello",
-            time_filter=TIME_FILTER_DEFAULT,
-            task_ts=FakedDatetime.now(),
-        )
-        s = self.conn.make_session()
-        s.add(*[c, q])
-        s.commit()
-        s.close()
 
     def tearDown(self):
         """
@@ -444,6 +432,16 @@ class TestMigrationTo025(MigrationTestCase):
                          - type, name, left_table, right_table, time_filter
         DEFAULT set for - time_filter (TIME_FILTER_DEFAULT)
         """
+        data = self.conn.get_records(
+            f"select time_filter from {self.QUALITY_TABLE_1.fullname}"
+        )
+        assert [d[0] for d in data] == [None]
+
+        data = self.conn.get_records(
+            f"select time_filter from {self.CONSISTENCY_TABLE_1.fullname}"
+        )
+        assert [d[0] for d in data] == [None]
+
         self.migrate_to_latest()
 
         # quality check - attribute, rule_name, rule_type, time_filter
@@ -460,6 +458,10 @@ class TestMigrationTo025(MigrationTestCase):
             },
         }
         self._validate_migration(metadata, should_be)
+        data = self.conn.get_records(
+            f"select time_filter from {self.QUALITY_TABLE_1.fullname}"
+        )
+        assert [d[0] for d in data] == [TIME_FILTER_DEFAULT]
 
         # consistency check - name, type, left_table, right_table, time_filter
         metadata = self._get_metadata(
@@ -477,6 +479,10 @@ class TestMigrationTo025(MigrationTestCase):
             },
         }
         self._validate_migration(metadata, should_be)
+        data = self.conn.get_records(
+            f"select time_filter from {self.CONSISTENCY_TABLE_1.fullname}"
+        )
+        assert [d[0] for d in data] == [TIME_FILTER_DEFAULT]
 
     def test_migration_downgrade_to_0_2_4(self):
         self.migrate_to_latest()
@@ -494,6 +500,10 @@ class TestMigrationTo025(MigrationTestCase):
             "time_filter": {"is_nullable": "YES", "column_default": None},
         }
         self._validate_migration(metadata, should_be)
+        data = self.conn.get_records(
+            f"select time_filter from {self.QUALITY_TABLE_1.fullname}"
+        )
+        assert [d[0] for d in data] == [None]
 
         # consistency check
         metadata = self._get_metadata(
@@ -509,3 +519,7 @@ class TestMigrationTo025(MigrationTestCase):
             "time_filter": {"is_nullable": "YES", "column_default": None},
         }
         self._validate_migration(metadata, should_be)
+        data = self.conn.get_records(
+            f"select time_filter from {self.CONSISTENCY_TABLE_1.fullname}"
+        )
+        assert [d[0] for d in data] == [None]
