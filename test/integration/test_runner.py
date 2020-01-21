@@ -206,32 +206,6 @@ class TestDataQualityOperator(unittest.TestCase):
         self.assertEqual(sql_rule["passed"], 0)
         self.assertEqual(sql_rule["attribute"], "src_dst")
 
-    def test_result_table_without_prefix(self):
-        rules = [
-            {
-                "name": "not_null_name",
-                "type": "not_null",
-                "column": "dst",
-                "time_filter": "created_at",
-            }
-        ]
-        self.contessa_runner.run(
-            check_table={"schema_name": "tmp", "table_name": self.tmp_table_name},
-            result_table={
-                "schema_name": "data_quality",
-                "table_name": "abcde",
-                "use_prefix": False,
-            },
-            raw_rules=rules,
-            context={"task_ts": self.now},
-        )
-        rows = self.conn.get_pandas_df(
-            f"""
-                SELECT 1 from data_quality.abcde
-            """
-        )
-        self.assertEqual(rows.shape[0], 1)
-
     def test_different_schema(self):
         rules = [
             {

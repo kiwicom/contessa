@@ -15,7 +15,7 @@ class TestDataQualityOperator(unittest.TestCase):
         """
         self.left_table_name = "raw_booking"
         self.right_table_name = "booking"
-        self.result_table_name = "consistency_booking"
+        self.result_table_name = "booking"
         self.ts_nodash = (
             FakedDatetime.now().isoformat().replace("-", "").replace(":", "")
         )
@@ -94,13 +94,12 @@ class TestDataQualityOperator(unittest.TestCase):
             result_table={
                 "schema_name": "data_quality",
                 "table_name": self.result_table_name,
-                "use_prefix": False,
             },
             context={"task_ts": self.now},
         )
         rows = self.conn.get_pandas_df(
             f"""
-            SELECT * from data_quality.{self.result_table_name}
+            SELECT * from data_quality.consistency_check_{self.result_table_name}
             order by created_at
         """
         )
@@ -128,14 +127,13 @@ class TestDataQualityOperator(unittest.TestCase):
             result_table={
                 "schema_name": "data_quality",
                 "table_name": self.result_table_name,
-                "use_prefix": False,
             },
             context={"task_ts": self.now},
         )
 
         rows = self.conn.get_pandas_df(
             f"""
-            SELECT * from data_quality.{self.result_table_name}
+            SELECT * from data_quality.consistency_check_{self.result_table_name}
             order by created_at
         """
         )
@@ -190,14 +188,13 @@ class TestDataQualityOperator(unittest.TestCase):
             result_table={
                 "schema_name": "data_quality",
                 "table_name": self.result_table_name,
-                "use_prefix": False,
             },
             context={"task_ts": self.now},
         )
 
         rows = self.conn.get_pandas_df(
             f"""
-                SELECT * from data_quality.{self.result_table_name}
+                SELECT * from data_quality.consistency_check_{self.result_table_name}
                 order by created_at
             """
         )

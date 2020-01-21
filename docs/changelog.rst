@@ -1,6 +1,36 @@
 Contessa Changelog
 ============================================
 
+2019-XX-XX; 0.2.5;
+--------------------------------------------
+
+- remove `use_prefix` for result_table. User can't change name of the table
+- remove Enum for Checks. Prefix of the table is in `_table_prefix` attribute on models
+- change migration template. do migration for all the models separately if needed
+- refactor migration tests. introduce MigrationTestCase class.
+
+*Migration needed*
+- add new migration. Add nullables + default time_filter ('not_set') for QualityCheck and
+  ConsistencyCheck models. Run this command:
+  `contessa-migrate -u $DB_URI -s data_quality -v 0.2.5`
+
+
+Note we're setting nullables for columns bellow. Make sure you don't have null values in them.
+
+*QualityCheck*
+- rule_type
+- rule_name
+- attribute
+- time_filter (fix with 1. step)
+
+*ConsistencyCheck*
+- type
+- name
+- left_table
+- right_table
+- time_filter (fix with 1. step)
+
+
 2019-04-12; 0.2.4;
 --------------------------------------------
 - *breaking change* - output data schema change - name renamed to type, added name. Do the :ref:`migration` before use this version. 

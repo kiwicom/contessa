@@ -7,6 +7,7 @@ import pandas as pd
 
 from contessa.db import Connector
 from contessa.models import Table
+from contessa.settings import TIME_FILTER_DEFAULT
 
 
 class Executor(metaclass=abc.ABCMeta):
@@ -64,7 +65,7 @@ class Executor(metaclass=abc.ABCMeta):
         days = 30
         filters = []
         result = []
-        if rule.time_filter:
+        if rule.time_filter != TIME_FILTER_DEFAULT:
             if isinstance(rule.time_filter, str):
                 filters.append({"column": rule.time_filter, "days": days})
             elif isinstance(rule.time_filter, list):

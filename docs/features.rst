@@ -78,11 +78,6 @@ Quality Check Result
 Result will be storred to ``result_table`` in your database. Its model is defined in :ref:`quality_check`.
 Table name will be prefixed with ``quality_check``, in this example case the resulting table would be ``dq.quality_check_my_table``.
 
-.. tip::
-    
-    You can suppress this behaviour by passing ``result_table={"schema_name": "dq", "table_name": "this_is_my_name", "use_prefix": False}``
-    to ContessaRunner.
-
 .. quality-check-end
 
 Debug Mode
