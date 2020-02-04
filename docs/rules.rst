@@ -10,15 +10,18 @@ Usage of any generic or custom:
   from contessa import GT, SQL, NOT_NULL
 
   rules = [{
-    "name": NOT_NULL,
+    "type": NOT_NULL,
+    "name": "not_nulls",
     "columns": ["a", "b", "c"],
   }, {
-    "name": GT,
+    "type": GT,
+    "name": "gt_0",
     "value": 0,
     "columns": ["a", "b", "c"],
     "condition": "status IN ('closed', 'refunded')", # optional thingy in rules
   }, {
-    "name": SQL,
+    "type": SQL,
+    "name": "cool_sql",
     "sql": "SELECT CASE WHEN <something-cool> THEN false ELSE true END FROM {{table_fullname}}",
     "description": "more coolness",
     # condition doesnt make sense here :)

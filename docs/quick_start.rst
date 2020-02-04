@@ -16,7 +16,8 @@ Basic Rules
 	
 	RULES = [
 	    {
-	        "name": NOT_NULL,
+	        "type": NOT_NULL,
+	        "name": "not_null_base",
 	        "columns": [
 	            "status",
 	            "src",
@@ -30,7 +31,8 @@ Basic Rules
 	        ],
 	    },
 	    {
-	        "name": GT,
+	        "type": GT,
+	        "name": "gt_0_prices",
 	        "value": 0,
 	        "columns": ["full_price", "initial_price"],
 	        "condition": "status IN ('closed', 'refunded')",
@@ -74,7 +76,8 @@ Let's define a custom rule in SQL, because for example, Contessa doesn't have an
 .. code-block:: python
 
     {
-        "name": SQL,
+        "type": SQL,
+        "name": "created_updated",
         "sql": """
              SELECT CASE WHEN created_at > NOW() OR updated_at > NOW() THEN false ELSE true END AS Status
              FROM {{table_fullname}}

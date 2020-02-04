@@ -64,11 +64,13 @@ Quick Example
         },
         {
             "type": GT,
+            "name": "gt_0_prices",
             "value": 0,
             "columns": ["initial_price", "turnover_before_refunds", ],
         },
         {
             "type": SQL,
+            "name": "no_bags_sql",
             "sql": no_bags_sql,
             "description": "No bags booking should have bags = 0",
         },
