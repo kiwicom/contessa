@@ -1,8 +1,9 @@
+datadog
 sqlalchemy>=1.2
 psycopg2-binary>=2.7
 pandas
 Jinja2
-pybigquery
+pybigquery==0.4.13
 alembic
 click
 packaging
