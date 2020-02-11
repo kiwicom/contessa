@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 
 from datetime import datetime
 
+from contessa.destination import Destination, DBDestination
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
@@ -27,26 +28,38 @@ class ContessaRunner:
         check_table: Dict,
         result_table: Dict,  # todo - docs for quality name, maybe defaults..
         context: Optional[Dict] = None,
+        destinations: List[Destination] = None,
     ):
         check_table = Table(**check_table)
         result_table = ResultTable(**result_table, model_cls=self.model_cls)
         context = self.get_context(check_table, context)
+        destinations = (
+            destinations
+            if destinations is not None
+            else [DBDestination(self.conn_uri_or_engine)]
+        )
 
         normalized_rules = self.normalize_rules(raw_rules)
         refresh_executors(check_table, self.conn, context)
         quality_check_class = self.get_quality_check_class(result_table)
-        self.conn.ensure_table(quality_check_class.__table__)
+
+        _ = [
+            destination.ensure_destination(quality_check_class)
+            for destination in destinations
+        ]
 
         rules = self.build_rules(normalized_rules)
         objs = self.do_quality_checks(quality_check_class, rules, context)
 
-        self.conn.upsert(objs)
+        _ = [destination.persist(objs) for destination in destinations]
 
     @staticmethod
     def get_context(check_table: Table, context: Optional[Dict] = None) -> Dict:
         """
         Construct context to pass to executors. User context overrides defaults.
         """
+        if context is None:
+            context = {}
         ctx_defaults = {
             "table_fullname": check_table.fullname,
             "task_ts": datetime.now(),  # todo - is now() ok ?

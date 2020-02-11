@@ -4,6 +4,7 @@ import logging
 from typing import Dict
 
 import pandas as pd
+from pybigquery.sqlalchemy_bigquery import BigQueryDialect
 
 from contessa.db import Connector
 from contessa.models import Table
@@ -79,8 +80,13 @@ class Executor(metaclass=abc.ABCMeta):
                 past = (
                     self.context["task_ts"] - timedelta(days=each["days"])
                 ).strftime("%Y-%m-%d %H:%M:%S UTC")
+                timestamp_transformer = (
+                    "::timestamptz"
+                    if not isinstance(self.conn.engine.dialect, BigQueryDialect)
+                    else ""
+                )
                 result.append(
-                    f"""{each["column"]} BETWEEN '{past}'::timestamptz AND '{present}'::timestamptz"""
+                    f"""{each["column"]} BETWEEN '{past}'{timestamp_transformer} AND '{present}'{timestamp_transformer}"""
                 )
 
         return " AND ".join(result)
