@@ -7,8 +7,7 @@ import pandas as pd
 
 from contessa.db import Connector
 from contessa.models import Table
-from contessa.settings import TIME_FILTER_DEFAULT
-
+from contessa.utils import compose_where_time_filter
 
 class Executor(metaclass=abc.ABCMeta):
     """
@@ -62,28 +61,7 @@ class Executor(metaclass=abc.ABCMeta):
         only data that were updated/created/confirmed in last 30 days.
         :return: str, WHERE `time_filter` filter statement
         """
-        days = 30
-        filters = []
-        result = []
-        if rule.time_filter != TIME_FILTER_DEFAULT:
-            if isinstance(rule.time_filter, str):
-                filters.append({"column": rule.time_filter, "days": days})
-            elif isinstance(rule.time_filter, list):
-                for each in rule.time_filter:
-                    filters.append(
-                        {"column": each["column"], "days": each.get("days", days)}
-                    )
-
-            for each in filters:
-                present = self.context["task_ts"].strftime("%Y-%m-%d %H:%M:%S UTC")
-                past = (
-                    self.context["task_ts"] - timedelta(days=each["days"])
-                ).strftime("%Y-%m-%d %H:%M:%S UTC")
-                result.append(
-                    f"""{each["column"]} BETWEEN '{past}'::timestamptz AND '{present}'::timestamptz"""
-                )
-
-        return " AND ".join(result)
+        return compose_where_time_filter(rule.time_filter, self.context["task_ts"])
 
     def compose_where_condition(self, rule):
         """

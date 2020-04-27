@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from statistics import median
 from typing import Dict
+import json
 
 import pandas as pd
 from sqlalchemy import and_, Column, DateTime, MetaData, text, UniqueConstraint
@@ -106,7 +107,10 @@ class QualityCheck(AbstractConcreteBase, DQBase):
 
         self.set_medians(conn)
 
-        self.time_filter = rule.time_filter
+        if isinstance(rule.time_filter, str):
+            self.time_filter = rule.time_filter
+        else:
+            self.time_filter = json.dumps(rule.time_filter)
         self.failed_percentage = self._perc(self.failed, self.total_records)
         self.passed_percentage = self._perc(self.passed, self.total_records)
         self.status = "invalid" if self.failed > 0 else "valid"
@@ -203,6 +207,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         status: str,
         left_table_name: str,
         right_table_name: str,
+        time_filter = None,
         context: Dict = None,
     ):
         """
@@ -214,6 +219,10 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         self.description = check["description"]
         self.left_table = left_table_name
         self.right_table = right_table_name
+        if isinstance(time_filter, str):
+            self.time_filter = time_filter
+        else:
+            self.time_filter = json.dumps(time_filter)
         self.status = status
 
     def __repr__(self):
