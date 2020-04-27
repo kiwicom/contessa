@@ -103,7 +103,7 @@ class TestDataQualityOperator(unittest.TestCase):
             order by created_at
         """
         )
-        self.assertEqual(rows.iloc[0]["status"], "false")
+        self.assertEqual(rows.iloc[0]["status"], "invalid")
 
     @mock.patch("contessa.executor.datetime", FakedDatetime)
     def test_execute_consistency_true(self):
@@ -137,7 +137,7 @@ class TestDataQualityOperator(unittest.TestCase):
             order by created_at
         """
         )
-        self.assertEqual(rows.iloc[0]["status"], "true")
+        self.assertEqual(rows.iloc[0]["status"], "valid")
 
     @mock.patch("contessa.executor.datetime", FakedDatetime)
     def test_execute_consistency_diff(self):
@@ -199,4 +199,4 @@ class TestDataQualityOperator(unittest.TestCase):
             """
         )
 
-        self.assertEqual(rows.iloc[0]["status"], "true")
+        self.assertEqual(rows.iloc[0]["status"], "valid")
