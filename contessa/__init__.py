@@ -6,7 +6,7 @@ It exposes `DataQualityOperator` that can be plugged in any airflow DAG and will
 check on load in temporary table.
 """
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 # Start ignoring PyUnusedCodeBear
 from .consistency_checker import ConsistencyChecker
