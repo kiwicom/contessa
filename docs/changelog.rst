@@ -9,6 +9,11 @@ Contessa Changelog
 - change migration template. do migration for all the models separately if needed
 - refactor migration tests. introduce MigrationTestCase class.
 - updates of the quality checks are now possible. you can rerun same check and it will be updated.
+- improvements to consistency checker:
+    - add time filter
+    - fix comparison of tables when they store rows in different order
+    - allow to compare subset of columns
+    - allow custom query for selecting results from table
 
 *Migration needed*
 - add new migration. Add nullables + default time_filter ('not_set') for QualityCheck and
