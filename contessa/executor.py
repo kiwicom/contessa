@@ -9,6 +9,7 @@ from contessa.db import Connector
 from contessa.models import Table
 from contessa.utils import compose_where_time_filter
 
+
 class Executor(metaclass=abc.ABCMeta):
     """
     Class that execute a rule and gives a proper kwargs to the `Rule.apply()` method.
