@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from contessa.settings import TIME_FILTER_DEFAULT
 
+
 def compose_where_time_filter(time_filter, task_ts):
     days = 30
     filters = []
@@ -17,9 +18,9 @@ def compose_where_time_filter(time_filter, task_ts):
 
         for each in filters:
             present = task_ts.strftime("%Y-%m-%d %H:%M:%S UTC")
-            past = (
-                task_ts - timedelta(days=each["days"])
-            ).strftime("%Y-%m-%d %H:%M:%S UTC")
+            past = (task_ts - timedelta(days=each["days"])).strftime(
+                "%Y-%m-%d %H:%M:%S UTC"
+            )
             result.append(
                 f"""({each["column"]} >= '{past}'::timestamptz AND {each["column"]} < '{present}'::timestamptz)"""
             )

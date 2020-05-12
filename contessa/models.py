@@ -207,7 +207,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         status: str,
         left_table_name: str,
         right_table_name: str,
-        time_filter = None,
+        time_filter=None,
         context: Dict = None,
     ):
         """

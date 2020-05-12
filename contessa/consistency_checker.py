@@ -50,7 +50,9 @@ class ConsistencyChecker:
     ):
         if left_custom_sql and right_custom_sql:
             if columns or time_filter:
-                raise ValueError("When using custom sqls you cannot change 'columns' or 'time_filter' attribute")
+                raise ValueError(
+                    "When using custom sqls you cannot change 'columns' or 'time_filter' attribute"
+                )
 
         left_check_table = Table(**left_check_table)
         right_check_table = Table(**right_check_table)
@@ -58,7 +60,14 @@ class ConsistencyChecker:
         context = self.get_context(left_check_table, right_check_table, context)
 
         result = self.do_consistency_check(
-            method, columns, time_filter, left_check_table, right_check_table, left_custom_sql, right_custom_sql, context
+            method,
+            columns,
+            time_filter,
+            left_check_table,
+            right_check_table,
+            left_custom_sql,
+            right_custom_sql,
+            context,
         )
 
         quality_check_class = create_default_check_class(result_table)
@@ -105,30 +114,36 @@ class ConsistencyChecker:
                     column = "count(*)"
             elif method == self.DIFF:
                 if columns:
-                    column = ', '.join(columns)
+                    column = ", ".join(columns)
                 else:
                     # List the columns explicitly in case column order of compared tables is not the same.
-                    column = ", ".join(sorted(self.right_conn.get_column_names(right_check_table.fullname)))
+                    column = ", ".join(
+                        sorted(
+                            self.right_conn.get_column_names(right_check_table.fullname)
+                        )
+                    )
             else:
                 raise NotImplementedError(f"Method {method} not implemented")
 
         if not left_sql:
-            left_sql = self.construct_default_query(left_check_table.fullname, column, time_filter, context)
+            left_sql = self.construct_default_query(
+                left_check_table.fullname, column, time_filter, context
+            )
         left_result = self.run_query(self.left_conn, left_sql, context)
         if not right_sql:
-            right_sql = self.construct_default_query(right_check_table.fullname, column, time_filter, context)
+            right_sql = self.construct_default_query(
+                right_check_table.fullname, column, time_filter, context
+            )
         right_result = self.run_query(self.right_conn, right_sql, context)
 
         return {
-            "check": {
-                "type": method,
-                "description": "",
-                "name": "consistency",
-            },
-            "status": "valid" if self.compare_results(left_result, right_result) else "invalid",
+            "check": {"type": method, "description": "", "name": "consistency",},
+            "status": "valid"
+            if self.compare_results(left_result, right_result)
+            else "invalid",
             "left_table_name": left_check_table.fullname,
             "right_table_name": right_check_table.fullname,
-            'time_filter': time_filter,
+            "time_filter": time_filter,
             "context": context,
         }
 
