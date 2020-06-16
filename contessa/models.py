@@ -209,6 +209,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
         right_table_name: str,
         time_filter=None,
         context: Dict = None,
+        **_,
     ):
         """
         Set result to consistency check object.
@@ -294,3 +295,54 @@ def create_default_check_class(result_table: ResultTable):
     cls.metadata.schema = result_table.schema_name
     cls.__table__.schema = result_table.schema_name
     return cls
+
+
+class CheckResult:
+    def init_row(
+        self, rule: Rule, results: pd.Series, conn: Connector, context: Dict = None
+    ):
+        if results.isnull().any():
+            raise ValueError("In results of rule.apply can't be any Null values.")
+
+        self.rule_name = rule.name
+        self.rule_type = rule.type
+        self.rule_description = rule.description
+
+        self.total_records = results.shape[0]
+        self.failed = results[results == False].shape[0]
+        self.passed = results[results == True].shape[0]
+
+        if isinstance(rule.time_filter, str):
+            self.time_filter = rule.time_filter
+        else:
+            self.time_filter = json.dumps(rule.time_filter)
+        self.failed_percentage = self._perc(self.failed, self.total_records)
+        self.passed_percentage = self._perc(self.passed, self.total_records)
+        self.status = "invalid" if self.failed > 0 else "valid"
+
+    def init_row_consistency(
+        self, check: Dict, status: str, time_filter=None, context: Dict = None,
+    ):
+        self.rule_type = check["type"]
+        self.rule_name = check["name"]
+        self.rule_description = check["description"]
+
+        self.total_records = check["passed"] + check["failed"]
+        self.passed = check["passed"]
+        self.failed = check["failed"]
+
+        if isinstance(time_filter, str):
+            self.time_filter = time_filter
+        else:
+            self.time_filter = json.dumps(time_filter)
+        self.failed_percentage = self._perc(self.failed, self.total_records)
+        self.passed_percentage = self._perc(self.passed, self.total_records)
+        self.status = status
+
+    def _perc(self, a, b):
+        res = 0
+        try:
+            res = (a / b) * 100
+        except ZeroDivisionError:
+            pass
+        return res

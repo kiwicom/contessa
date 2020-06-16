@@ -6,7 +6,13 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
-from contessa.models import create_default_check_class, Table, ResultTable, QualityCheck
+from contessa.models import (
+    create_default_check_class,
+    Table,
+    ResultTable,
+    QualityCheck,
+    CheckResult,
+)
 from contessa.normalizer import RuleNormalizer
 from contessa.rules import get_rule_cls
 
@@ -25,22 +31,30 @@ class ContessaRunner:
         self,
         raw_rules: List[Dict[str, str]],
         check_table: Dict,
-        result_table: Dict,  # todo - docs for quality name, maybe defaults..
+        result_table: Optional[
+            Dict
+        ] = None,  # todo - docs for quality name, maybe defaults..
         context: Optional[Dict] = None,
     ):
         check_table = Table(**check_table)
-        result_table = ResultTable(**result_table, model_cls=self.model_cls)
         context = self.get_context(check_table, context)
 
         normalized_rules = self.normalize_rules(raw_rules)
         refresh_executors(check_table, self.conn, context)
-        quality_check_class = self.get_quality_check_class(result_table)
-        self.conn.ensure_table(quality_check_class.__table__)
+
+        if result_table:
+            result_table = ResultTable(**result_table, model_cls=self.model_cls)
+            quality_check_class = self.get_quality_check_class(result_table)
+            self.conn.ensure_table(quality_check_class.__table__)
+        else:
+            quality_check_class = CheckResult
 
         rules = self.build_rules(normalized_rules)
         objs = self.do_quality_checks(quality_check_class, rules, context)
 
-        self.conn.upsert(objs)
+        if result_table:
+            self.conn.upsert(objs)
+        return objs
 
     @staticmethod
     def get_context(check_table: Table, context: Optional[Dict] = None) -> Dict:
@@ -51,7 +65,8 @@ class ContessaRunner:
             "table_fullname": check_table.fullname,
             "task_ts": datetime.now(),  # todo - is now() ok ?
         }
-        ctx_defaults.update(context)
+        if context:
+            ctx_defaults.update(context)
         return ctx_defaults
 
     def normalize_rules(self, raw_rules):
