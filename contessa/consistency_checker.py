@@ -11,6 +11,7 @@ from contessa.models import (
     Table,
     ResultTable,
     ConsistencyCheck,
+    CheckResult,
 )
 from contessa.settings import TIME_FILTER_DEFAULT
 from contessa.utils import compose_where_time_filter
@@ -41,7 +42,7 @@ class ConsistencyChecker:
         method: str,
         left_check_table: Dict,
         right_check_table: Dict,
-        result_table: Dict,
+        result_table: Optional[Dict] = None,
         columns: Optional[List[str]] = None,
         time_filter: str = TIME_FILTER_DEFAULT,
         left_custom_sql: str = None,
@@ -56,7 +57,6 @@ class ConsistencyChecker:
 
         left_check_table = Table(**left_check_table)
         right_check_table = Table(**right_check_table)
-        result_table = ResultTable(**result_table, model_cls=self.model_cls)
         context = self.get_context(left_check_table, right_check_table, context)
 
         result = self.do_consistency_check(
@@ -70,9 +70,16 @@ class ConsistencyChecker:
             context,
         )
 
-        quality_check_class = create_default_check_class(result_table)
-        self.right_conn.ensure_table(quality_check_class.__table__)
-        self.upsert(quality_check_class, result)
+        if result_table:
+            result_table = ResultTable(**result_table, model_cls=self.model_cls)
+            quality_check_class = create_default_check_class(result_table)
+            self.right_conn.ensure_table(quality_check_class.__table__)
+            self.upsert(quality_check_class, result)
+            return result
+
+        obj = CheckResult()
+        obj.init_row_consistency(**result)
+        return obj
 
     @staticmethod
     def get_context(
@@ -88,7 +95,8 @@ class ConsistencyChecker:
             "right_table_fullname": right_check_table.fullname,
             "task_ts": datetime.now(),
         }
-        ctx_defaults.update(context)
+        if context:
+            ctx_defaults.update(context)
         return ctx_defaults
 
     def do_consistency_check(
@@ -136,11 +144,17 @@ class ConsistencyChecker:
             )
         right_result = self.run_query(self.right_conn, right_sql, context)
 
+        valid, passed, failed = self.compare_results(left_result, right_result)
+
         return {
-            "check": {"type": method, "description": "", "name": "consistency",},
-            "status": "valid"
-            if self.compare_results(left_result, right_result)
-            else "invalid",
+            "check": {
+                "type": method,
+                "description": "",
+                "name": "consistency",
+                "passed": passed,
+                "failed": failed,
+            },
+            "status": "valid" if valid else "invalid",
             "left_table_name": left_check_table.fullname,
             "right_table_name": right_check_table.fullname,
             "time_filter": time_filter,
@@ -148,7 +162,12 @@ class ConsistencyChecker:
         }
 
     def compare_results(self, left_result, right_result):
-        return set(left_result) == set(right_result)
+        left_set = set(left_result)
+        right_set = set(right_result)
+        common = left_set.intersection(right_set)
+        passed = len(common)
+        failed = (len(left_set) - len(common)) + (len(right_set) - len(common))
+        return failed == 0, passed, failed
 
     def construct_default_query(self, table_name, column, time_filter, context):
         time_filter = compose_where_time_filter(time_filter, context["task_ts"])
