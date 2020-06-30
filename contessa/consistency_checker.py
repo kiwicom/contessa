@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Union
 
 import jinja2
 import sqlalchemy
@@ -48,7 +48,7 @@ class ConsistencyChecker:
         left_custom_sql: str = None,
         right_custom_sql: str = None,
         context: Optional[Dict] = None,
-    ):
+    ) -> Union[CheckResult, ConsistencyCheck]:
         if left_custom_sql and right_custom_sql:
             if columns or time_filter:
                 raise ValueError(
