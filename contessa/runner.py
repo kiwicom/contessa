@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 
 from datetime import datetime
 
@@ -35,7 +35,7 @@ class ContessaRunner:
             Dict
         ] = None,  # todo - docs for quality name, maybe defaults..
         context: Optional[Dict] = None,
-    ):
+    ) -> Union[CheckResult, QualityCheck]:
         check_table = Table(**check_table)
         context = self.get_context(check_table, context)
 
