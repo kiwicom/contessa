@@ -11,7 +11,7 @@ Contessa
    :target:  https://pypi.org/project/contessa/
 .. |build-badge| image:: https://travis-ci.org/kiwicom/contessa.svg?branch=master
    :target: https://travis-ci.org/kiwicom/contessa
-.. |license-badge| image:: https://img.shields.io/pypi/l/schemathesis.svg
+.. |license-badge| image:: https://img.shields.io/pypi/l/contessa.svg
    :target: https://opensource.org/licenses/MIT
 
 
