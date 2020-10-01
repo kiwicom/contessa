@@ -6,7 +6,7 @@ setup(
     version=contessa.__version__,
     description="Data-quality framework",
     long_description=open("README.rst", "r").read(),
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     author="Mario Hunka",
     author_email="mario.hunka@kiwi.com",
     url="https://github.com/kiwicom/contessa",
