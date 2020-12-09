@@ -298,6 +298,18 @@ def create_default_check_class(result_table: ResultTable):
 
 
 class CheckResult:
+    rule_name: str
+    rule_type: str
+    rule_description: str
+    total_records: int
+    failed: int
+    passed: int
+    time_filter: str
+    failed_percentage: float
+    passed_percentage: float
+    status: str
+    context: Dict
+
     def init_row(
         self, rule: Rule, results: pd.Series, conn: Connector, context: Dict = None
     ):
@@ -319,15 +331,16 @@ class CheckResult:
         self.failed_percentage = self._perc(self.failed, self.total_records)
         self.passed_percentage = self._perc(self.passed, self.total_records)
         self.status = "invalid" if self.failed > 0 else "valid"
+        self.context = context
 
     def init_row_consistency(
-        self, check: Dict, status: str, time_filter=None, context: Dict = None,
+        self, check: Dict, status: str, left_table_name, right_table_name, time_filter=None, context: Dict = None,
     ):
         self.rule_type = check["type"]
         self.rule_name = check["name"]
         self.rule_description = check["description"]
 
-        self.total_records = check["passed"] + check["failed"]
+        self.total_records = check["passed"] + abs(check["failed"])
         self.passed = check["passed"]
         self.failed = check["failed"]
 
@@ -338,6 +351,12 @@ class CheckResult:
         self.failed_percentage = self._perc(self.failed, self.total_records)
         self.passed_percentage = self._perc(self.passed, self.total_records)
         self.status = status
+
+        context.update({
+            "left_table_name": left_table_name,
+            "right_table_name": right_table_name
+        })
+        self.context = context
 
     def _perc(self, a, b):
         res = 0
