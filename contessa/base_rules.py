@@ -44,5 +44,5 @@ class Rule(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def __str__(self):
-        tf = f"- {self.time_filter}" or ""
-        return f"Rule {self.name} of type {self.type} {tf}"
+        tf = f" - {self.time_filter}" or ""
+        return f"Rule {self.name} of type {self.type}{tf}"

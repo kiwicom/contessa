@@ -144,7 +144,7 @@ class ConsistencyChecker:
             )
         right_result = self.run_query(self.right_conn, right_sql, context)
 
-        valid, passed, failed = self.compare_results(left_result, right_result)
+        valid, passed, failed = self.compare_results(left_result, right_result, method)
 
         return {
             "check": {
@@ -161,13 +161,22 @@ class ConsistencyChecker:
             "context": context,
         }
 
-    def compare_results(self, left_result, right_result):
-        left_set = set(left_result)
-        right_set = set(right_result)
-        common = left_set.intersection(right_set)
-        passed = len(common)
-        failed = (len(left_set) - len(common)) + (len(right_set) - len(common))
-        return failed == 0, passed, failed
+    def compare_results(self, left_result, right_result, method):
+        if method == self.COUNT:
+            left_count = left_result[0][0]
+            right_count = right_result[0][0]
+            passed = min(left_count, right_count)
+            failed = (left_count - passed) - (right_count - passed)
+            return failed == 0, passed, failed
+        elif method == self.DIFF:
+            left_set = set(left_result)
+            right_set = set(right_result)
+            common = left_set.intersection(right_set)
+            passed = len(common)
+            failed = (len(left_set) - len(common)) + (len(right_set) - len(common))
+            return failed == 0, passed, failed
+        else:
+            raise NotImplementedError(f"Method {method} not implemented")
 
     def construct_default_query(self, table_name, column, time_filter, context):
         time_filter = compose_where_time_filter(time_filter, context["task_ts"])

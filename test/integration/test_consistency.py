@@ -8,7 +8,7 @@ from unittest import mock
 from contessa import ConsistencyChecker
 
 
-class TestDataQualityOperator(unittest.TestCase):
+class TestConsistencyChecker(unittest.TestCase):
     def setUp(self):
         """
         Init a temporary table with some data.
