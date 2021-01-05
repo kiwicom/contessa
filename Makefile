@@ -15,3 +15,6 @@ black:
 	
 bash:
 	docker run --rm -it -v $(curr_dir)/contessa:/app/ --entrypoint=/bin/sh contessa -c bash
+
+build-dist:
+	docker run --rm -v $(curr_dir):/app/ contessa python setup.py bdist_wheel

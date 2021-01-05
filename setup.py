@@ -5,7 +5,7 @@ setup(
     name="contessa",
     version=contessa.__version__,
     description="Data-quality framework",
-    long_description=open("README.rst", "r").read(),
+    long_description=open("README-MINIMAL.rst", "r").read(),
     long_description_content_type="text/x-rst",
     license="MIT",
     author="Mario Hunka",
