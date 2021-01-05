@@ -1,7 +1,20 @@
 Contessa Changelog
 ============================================
 
-2019-XX-XX; 0.2.5;
+2021-01-05; 0.2.7;
+--------------------------------------------
+
+- Fix project metadata
+- Fix return consistency results, add test
+
+2020-06-30; 0.2.6;
+--------------------------------------------
+
+- Format code with Black
+- Fix Travis deployment
+- Add run_only methods
+
+2020-05-12; 0.2.5;
 --------------------------------------------
 
 - remove `use_prefix` for result_table. User can't change name of the table
