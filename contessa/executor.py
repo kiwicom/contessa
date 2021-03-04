@@ -7,7 +7,6 @@ import pandas as pd
 
 from contessa.db import Connector
 from contessa.models import Table
-from contessa.utils import compose_where_time_filter
 
 
 class Executor(metaclass=abc.ABCMeta):
@@ -62,7 +61,11 @@ class Executor(metaclass=abc.ABCMeta):
         only data that were updated/created/confirmed in last 30 days.
         :return: str, WHERE `time_filter` filter statement
         """
-        return compose_where_time_filter(rule.time_filter, self.context["task_ts"])
+        if rule.time_filter:
+            if self.context.get("task_ts"):
+                rule.time_filter.now = self.context["task_ts"]
+            return rule.time_filter.sql
+        return ""
 
     def compose_where_condition(self, rule):
         """
@@ -82,14 +85,11 @@ class Executor(metaclass=abc.ABCMeta):
         only data that were updated/created/confirmed in last 30 days.
         :return: pd.Dataframe
         """
-        md = rule.time_filter
-        if md:
-            past = datetime.now() - timedelta(days=30)
-            selector = self.raw_df[md] >= past
-            filtered_df = self.raw_df[selector]
-        else:
-            filtered_df = self.raw_df
-        return filtered_df
+        if rule.time_filter:
+            raise NotImplementedError(
+                "time_filter is not supported with PandasExecutor"
+            )
+        return self.raw_df
 
     def execute(self, rule):
         """

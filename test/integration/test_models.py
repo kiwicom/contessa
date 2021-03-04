@@ -1,7 +1,7 @@
 import datetime
 
 from contessa.db import Connector
-from contessa.settings import TIME_FILTER_DEFAULT
+from contessa.models import TIME_FILTER_DEFAULT
 from test.conftest import FakedDatetime
 
 from contessa.models import (

@@ -45,14 +45,3 @@ def test_executor_raw_df(e):
         columns=["src", "dst", "value", "created_at"],
     )
     assert df.equals(expected)
-
-
-def test_executor_filter_df(e, monkeypatch):
-    rule = NotNullRule("not_null_name", "not_null", "src", time_filter="created_at")
-    monkeypatch.setattr("contessa.executor.datetime", FakedDatetime)
-    df = e.filter_df(rule)
-    expected = pd.DataFrame(
-        [("a", "b", 3.0, datetime(2018, 9, 12, 13))],
-        columns=["src", "dst", "value", "created_at"],
-    )
-    assert df.equals(expected)

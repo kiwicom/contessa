@@ -7,7 +7,7 @@ from contessa import ConsistencyChecker
 from contessa.alembic.packages_migrations import migration_map
 
 from contessa.db import Connector
-from contessa.settings import TIME_FILTER_DEFAULT
+from contessa.models import TIME_FILTER_DEFAULT
 
 from test.conftest import FakedDatetime
 from test.integration.conftest import TEST_DB_URI, ALEMBIC_INI_PATH
@@ -15,7 +15,6 @@ from contessa.models import (
     DQBase,
     QualityCheck,
     ConsistencyCheck,
-    create_default_check_class,
     ResultTable,
     Table,
 )
