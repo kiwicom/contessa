@@ -21,8 +21,8 @@ def test_build_rules(dummy_contessa):
         NotNullRule("not_null_name", "not_null", "c", time_filter="created_at"),
     ]
 
-    expected_dicts = [e.__dict__ for e in expected]
-    rules_dicts = [r.__dict__ for r in rules]
+    expected_dicts = {e.column for e in expected}
+    rules_dicts = {r.column for r in rules}
     assert expected_dicts == rules_dicts
 
 

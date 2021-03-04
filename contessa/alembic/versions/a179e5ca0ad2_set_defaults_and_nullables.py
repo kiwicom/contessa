@@ -12,12 +12,9 @@ import sqlalchemy as sa
 from sqlalchemy import create_engine, inspect, Table, MetaData
 
 from sqlalchemy.dialects.postgresql import TEXT
-from contessa.models import QualityCheck, ConsistencyCheck
-
+from contessa.models import QualityCheck, ConsistencyCheck, TIME_FILTER_DEFAULT
 
 # revision identifiers, used by Alembic.
-from contessa.settings import TIME_FILTER_DEFAULT
-
 revision = "a179e5ca0ad2"
 down_revision = "480e6618700d"
 branch_labels = None

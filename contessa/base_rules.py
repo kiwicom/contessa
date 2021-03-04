@@ -1,6 +1,7 @@
 import abc
+from typing import Union, List, Dict, Optional
 
-from contessa.settings import TIME_FILTER_DEFAULT
+from contessa.time_filter import TimeFilter, parse_time_filter
 
 
 class Rule(metaclass=abc.ABCMeta):
@@ -24,11 +25,16 @@ class Rule(metaclass=abc.ABCMeta):
     description = None
 
     def __init__(
-        self, name, type, description, time_filter=TIME_FILTER_DEFAULT, condition=None
+        self,
+        name,
+        type,
+        description,
+        time_filter: Optional[Union[str, List[Dict], TimeFilter]] = None,
+        condition=None,
     ):
         self.name = name
         self.type = type
-        self.time_filter = time_filter
+        self.time_filter = parse_time_filter(time_filter)
         self.condition = condition
         self.description = description
 

@@ -2,7 +2,6 @@ import logging
 from typing import Dict, Optional, List, Union
 
 import jinja2
-import sqlalchemy
 from datetime import datetime
 
 from contessa.db import Connector
@@ -13,8 +12,12 @@ from contessa.models import (
     ConsistencyCheck,
     CheckResult,
 )
-from contessa.settings import TIME_FILTER_DEFAULT
-from contessa.utils import compose_where_time_filter
+from contessa.time_filter import (
+    TimeFilter,
+    TimeFilterConjunction,
+    TimeFilterColumn,
+    parse_time_filter,
+)
 
 
 class ConsistencyChecker:
@@ -44,7 +47,7 @@ class ConsistencyChecker:
         right_check_table: Dict,
         result_table: Optional[Dict] = None,
         columns: Optional[List[str]] = None,
-        time_filter: str = TIME_FILTER_DEFAULT,
+        time_filter: Optional[Union[str, List[Dict], TimeFilter]] = None,
         left_custom_sql: str = None,
         right_custom_sql: str = None,
         context: Optional[Dict] = None,
@@ -54,6 +57,8 @@ class ConsistencyChecker:
                 raise ValueError(
                     "When using custom sqls you cannot change 'columns' or 'time_filter' attribute"
                 )
+
+        time_filter = parse_time_filter(time_filter)
 
         left_check_table = Table(**left_check_table)
         right_check_table = Table(**right_check_table)
@@ -103,7 +108,7 @@ class ConsistencyChecker:
         self,
         method: str,
         columns: Optional[List[str]],
-        time_filter: str,
+        time_filter: Optional[TimeFilter],
         left_check_table: Table,
         right_check_table: Table,
         left_sql: str = None,
@@ -178,8 +183,17 @@ class ConsistencyChecker:
         else:
             raise NotImplementedError(f"Method {method} not implemented")
 
-    def construct_default_query(self, table_name, column, time_filter, context):
-        time_filter = compose_where_time_filter(time_filter, context["task_ts"])
+    def construct_default_query(
+        self,
+        table_name: str,
+        column: str,
+        time_filter: Optional[TimeFilter],
+        context: Dict,
+    ):
+        if time_filter:
+            if context.get("task_ts"):
+                time_filter.now = context["task_ts"]
+            time_filter = time_filter.sql
         query = f"""
             SELECT {column}
             FROM {table_name}

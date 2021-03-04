@@ -18,7 +18,6 @@ from sqlalchemy.ext.declarative import (
     declared_attr,
 )
 
-from contessa.settings import TIME_FILTER_DEFAULT
 from contessa.base_rules import Rule
 from contessa.db import Connector
 
@@ -26,6 +25,8 @@ from contessa.db import Connector
 # ResultTable to runner. constructing concrete model for QualityCheck (that's abstract) will
 # swap the schemas before creation - see `create_default_quality_check_class`
 DQBase = declarative_base(metadata=MetaData(schema="data_quality"))
+
+TIME_FILTER_DEFAULT = "not_set"
 
 
 class QualityCheck(AbstractConcreteBase, DQBase):
@@ -107,10 +108,10 @@ class QualityCheck(AbstractConcreteBase, DQBase):
 
         self.set_medians(conn)
 
-        if isinstance(rule.time_filter, str):
-            self.time_filter = rule.time_filter
+        if rule.time_filter:
+            self.time_filter = str(rule.time_filter)
         else:
-            self.time_filter = json.dumps(rule.time_filter)
+            self.time_filter = TIME_FILTER_DEFAULT
         self.failed_percentage = self._perc(self.failed, self.total_records)
         self.passed_percentage = self._perc(self.passed, self.total_records)
         self.status = "invalid" if self.failed > 0 else "valid"
@@ -324,10 +325,8 @@ class CheckResult:
         self.failed = results[results == False].shape[0]
         self.passed = results[results == True].shape[0]
 
-        if isinstance(rule.time_filter, str):
-            self.time_filter = rule.time_filter
-        else:
-            self.time_filter = json.dumps(rule.time_filter)
+        if rule.time_filter:
+            self.time_filter = str(rule.time_filter)
         self.failed_percentage = self._perc(self.failed, self.total_records)
         self.passed_percentage = self._perc(self.passed, self.total_records)
         self.status = "invalid" if self.failed > 0 else "valid"
@@ -350,10 +349,8 @@ class CheckResult:
         self.passed = check["passed"]
         self.failed = check["failed"]
 
-        if isinstance(time_filter, str):
+        if time_filter:
             self.time_filter = time_filter
-        else:
-            self.time_filter = json.dumps(time_filter)
         self.failed_percentage = self._perc(self.failed, self.total_records)
         self.passed_percentage = self._perc(self.passed, self.total_records)
         self.status = status
