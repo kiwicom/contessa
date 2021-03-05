@@ -222,3 +222,29 @@ class ConsistencyChecker:
         self.right_conn.upsert(
             [obj,]
         )
+
+    def construct_automatic_time_filter(
+        self, left_check_table: Dict, created_at_column=None, updated_at_column=None,
+    ) -> TimeFilter:
+        left_check_table = Table(**left_check_table)
+
+        if created_at_column is None and updated_at_column is None:
+            raise ValueError("Automatic time filter need at least one time column")
+
+        since_column = updated_at_column or created_at_column
+        since_sql = f"SELECT min({since_column}) FROM {left_check_table.fullname}"
+        logging.info(since_sql)
+        since = self.left_conn.get_records(since_sql).scalar()
+
+        until_column = created_at_column or updated_at_column
+        until_sql = f"SELECT max({until_column}) FROM {left_check_table.fullname}"
+        logging.info(until_sql)
+        until = self.left_conn.get_records(until_sql).scalar()
+
+        return TimeFilter(
+            columns=[
+                TimeFilterColumn(since_column, since=since),
+                TimeFilterColumn(until_column, until=until, until_inclusive=True),
+            ],
+            conjunction=TimeFilterConjunction.AND,
+        )
