@@ -16,12 +16,16 @@ class TimeFilterColumn:
         result = "("
         if self.since:
             since_str = self.time_to_sql_value(self.since, now)
-            result += f"{self.column} >{'=' if self.since_inclusive else ''} {since_str}"
+            result += (
+                f"{self.column} >{'=' if self.since_inclusive else ''} {since_str}"
+            )
         if self.since and self.until:
             result += " AND "
         if self.until:
             until_str = self.time_to_sql_value(self.until, now)
-            result += f"{self.column} <{'=' if self.until_inclusive else ''} {until_str}"
+            result += (
+                f"{self.column} <{'=' if self.until_inclusive else ''} {until_str}"
+            )
         result += ")"
         return result
 
