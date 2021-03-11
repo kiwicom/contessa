@@ -1,6 +1,12 @@
 Contessa Changelog
 ============================================
 
+2021-03-11; 0.2.8;
+--------------------------------------------
+
+- Implement more robust time filter
+- Add `construct_automatic_time_filter` method for selection of ideal interval for consistency checks
+
 2021-01-05; 0.2.7;
 --------------------------------------------
 
