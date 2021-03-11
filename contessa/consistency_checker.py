@@ -236,15 +236,7 @@ class ConsistencyChecker:
         logging.info(since_sql)
         since = self.left_conn.get_records(since_sql).scalar()
 
-        until_column = created_at_column or updated_at_column
-        until_sql = f"SELECT max({until_column}) FROM {left_check_table.fullname}"
-        logging.info(until_sql)
-        until = self.left_conn.get_records(until_sql).scalar()
-
         return TimeFilter(
-            columns=[
-                TimeFilterColumn(since_column, since=since),
-                TimeFilterColumn(until_column, until=until, until_inclusive=True),
-            ],
+            columns=[TimeFilterColumn(since_column, since=since),],
             conjunction=TimeFilterConjunction.AND,
         )
