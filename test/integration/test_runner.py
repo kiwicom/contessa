@@ -1,5 +1,3 @@
-import pandas as pd
-
 from contessa.db import Connector
 from contessa.models import DQBase
 from test.conftest import FakedDatetime
@@ -125,31 +123,31 @@ class TestDataQualityOperator(unittest.TestCase):
             context={"task_ts": self.now},
         )
 
-        rows = self.conn.get_pandas_df(
+        rows = self.conn.get_records(
             f"""
             SELECT * from data_quality.quality_check_{self.table_name}
             order by created_at
         """
-        )
-        self.assertEqual(rows.shape[0], 4)
+        ).fetchall()
+        self.assertEqual(len(rows), 4)
 
-        notnull_rule = rows.loc[0]
+        notnull_rule = rows[0]
         self.assertEqual(notnull_rule["failed"], 1)
         self.assertEqual(notnull_rule["passed"], 2)
         self.assertEqual(notnull_rule["attribute"], "dst")
         self.assertEqual(notnull_rule["task_ts"].timestamp(), self.now.timestamp())
 
-        gt_rule = rows.loc[1]
+        gt_rule = rows[1]
         self.assertEqual(gt_rule["failed"], 3)
         self.assertEqual(gt_rule["passed"], 0)
         self.assertEqual(gt_rule["attribute"], "price")
 
-        sql_rule = rows.loc[2]
+        sql_rule = rows[2]
         self.assertEqual(sql_rule["failed"], 1)
         self.assertEqual(sql_rule["passed"], 3)
         self.assertEqual(sql_rule["attribute"], "src_dst")
 
-        not_column_rule = rows.loc[3]
+        not_column_rule = rows[3]
         self.assertEqual(not_column_rule["failed"], 1)
         self.assertEqual(not_column_rule["passed"], 3)
         self.assertEqual(not_column_rule["attribute"], "src")
@@ -187,21 +185,21 @@ class TestDataQualityOperator(unittest.TestCase):
             context={"task_ts": self.now},
         )
 
-        rows = self.conn.get_pandas_df(
+        rows = self.conn.get_records(
             f"""
             SELECT * from data_quality.quality_check_{self.table_name}
             order by created_at
         """
-        )
-        self.assertEqual(rows.shape[0], 2)
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
 
-        notnull_rule = rows.loc[0]
+        notnull_rule = rows[0]
         self.assertEqual(notnull_rule["failed"], 1)
         self.assertEqual(notnull_rule["passed"], 2)
         self.assertEqual(notnull_rule["attribute"], "dst")
         self.assertEqual(notnull_rule["task_ts"].timestamp(), self.now.timestamp())
 
-        sql_rule = rows.loc[1]
+        sql_rule = rows[1]
         self.assertEqual(sql_rule["failed"], 1)
         self.assertEqual(sql_rule["passed"], 0)
         self.assertEqual(sql_rule["attribute"], "src_dst")
@@ -221,9 +219,9 @@ class TestDataQualityOperator(unittest.TestCase):
             raw_rules=rules,
             context={"task_ts": self.now},
         )
-        rows = self.conn.get_pandas_df(
+        rows = self.conn.get_records(
             f"""
                 SELECT 1 from hello.quality_check_abcde
             """
-        )
-        self.assertEqual(rows.shape[0], 1)
+        ).fetchall()
+        self.assertEqual(len(rows), 1)

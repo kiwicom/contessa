@@ -4,7 +4,6 @@ import logging
 from sqlalchemy import create_engine, Table, UniqueConstraint
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.base import Engine
-import pandas.io.sql as pdsql
 from sqlalchemy.orm import sessionmaker
 
 
@@ -42,9 +41,6 @@ class Connector:
         with self.engine.connect() as conn:
             rs = conn.execute(sql, **params)
         return rs
-
-    def get_pandas_df(self, sql):
-        return pdsql.read_sql(sql, con=self.engine)
 
     def ensure_table(self, table: Table):
         """

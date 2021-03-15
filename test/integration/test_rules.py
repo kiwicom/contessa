@@ -1,4 +1,3 @@
-import pandas as pd
 import pytest
 
 from contessa.executor import refresh_executors, SqlExecutor
@@ -14,16 +13,6 @@ from contessa.rules import (
     LteRule,
     EqRule,
 )
-
-
-@pytest.fixture(scope="module")
-def df():
-    return pd.DataFrame(
-        [
-            {"src": None, "dst": "abcd", "value": 4},
-            {"src": "aa", "dst": "aa", "value": 66},
-        ]
-    )
 
 
 @pytest.mark.parametrize(
@@ -63,7 +52,6 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    expected = pd.Series(expected, name=rule.column)
     assert list(expected) == list(results)
 
 
@@ -128,7 +116,6 @@ def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    expected = pd.Series(expected, name=rule.column)
     assert list(expected) == list(results)
 
 
@@ -162,7 +149,6 @@ def test_cmp_with_other_col_rules(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    expected = pd.Series(expected, name=rule.column)
     assert list(expected) == list(results)
 
 
@@ -191,8 +177,8 @@ def test_sql_apply(conn, ctx):
     """
     rule = CustomSqlRule("sql_test_name", "sql_test", "src", sql, "example description")
     results = rule.apply(conn)
-    expected = pd.Series([False, True])
-    assert list(expected) == list(results)
+    expected = [False, True]
+    assert expected == results
     conn.execute("""DROP TABLE tmp_table;""")
 
 
@@ -224,8 +210,8 @@ def test_sql_apply_extra_ctx(conn, ctx):
         "sql_test_name", "sql_test", "col1", sql, "example description"
     )
     results = rule.apply(conn)
-    expected = pd.Series([False, True])
-    assert list(expected) == list(results)
+    expected = [False, True]
+    assert expected == results
     conn.execute("""DROP TABLE public.dst_table;""")
 
 
@@ -267,11 +253,11 @@ def test_new_rule(conn, ctx):
     )
     rule = CountSqlRule("count_name", "count", 2)
     results = rule.apply(conn)
-    expected = pd.Series([True])
-    assert list(expected) == list(results)
+    expected = [True]
+    assert expected == results
 
     rule = CountSqlRule("count_name", "count", 2, condition="a = 'bts'")
     results = rule.apply(conn)
-    expected = pd.Series([False])
-    assert list(expected) == list(results)
+    expected = [False]
+    assert expected == results
     conn.execute("""DROP TABLE tmp_table;""")

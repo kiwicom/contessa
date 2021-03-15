@@ -97,13 +97,13 @@ class TestConsistencyChecker(unittest.TestCase):
             },
             context={"task_ts": self.now},
         )
-        rows = self.conn.get_pandas_df(
+        rows = self.conn.get_records(
             f"""
             SELECT * from data_quality.consistency_check_{self.result_table_name}
             order by created_at
         """
         )
-        self.assertEqual(rows.iloc[0]["status"], "invalid")
+        self.assertEqual(rows.fetchone()["status"], "invalid")
 
     @mock.patch("contessa.executor.datetime", FakedDatetime)
     def test_execute_consistency_true(self):
@@ -131,13 +131,13 @@ class TestConsistencyChecker(unittest.TestCase):
             context={"task_ts": self.now},
         )
 
-        rows = self.conn.get_pandas_df(
+        rows = self.conn.get_records(
             f"""
             SELECT * from data_quality.consistency_check_{self.result_table_name}
             order by created_at
         """
         )
-        self.assertEqual(rows.iloc[0]["status"], "valid")
+        self.assertEqual(rows.fetchone()["status"], "valid")
 
     @mock.patch("contessa.executor.datetime", FakedDatetime)
     def test_execute_consistency_diff(self):
@@ -192,11 +192,11 @@ class TestConsistencyChecker(unittest.TestCase):
             context={"task_ts": self.now},
         )
 
-        rows = self.conn.get_pandas_df(
+        rows = self.conn.get_records(
             f"""
                 SELECT * from data_quality.consistency_check_{self.result_table_name}
                 order by created_at
             """
         )
 
-        self.assertEqual(rows.iloc[0]["status"], "valid")
+        self.assertEqual(rows.fetchone()["status"], "valid")

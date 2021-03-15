@@ -1,7 +1,6 @@
 import logging
 
 import jinja2
-import pandas as pd
 
 from contessa.base_rules import Rule
 from contessa.db import Connector
@@ -61,8 +60,8 @@ class SqlRule(Rule):
     def apply(self, conn: Connector):
         """
         Execute a formatted sql. Check if it returns list of booleans that is needed
-        to do a quality check. If yes, return pd.Series.
-        :return: pd.Series
+        to do a quality check. If yes, return list of results.
+        :return: list
         """
         sql = self.sql_with_where
         logging.debug(sql)
@@ -77,7 +76,7 @@ class SqlRule(Rule):
             raise ValueError(
                 f"Your query for rule `{self.name}` of type `{self.type}` does not return list of booleans or Nones."
             )
-        return pd.Series([bool(r[0]) for r in results])
+        return [bool(r[0]) for r in results]
 
 
 class OneColumnRuleSQL(SqlRule):

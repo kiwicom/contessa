@@ -3,7 +3,6 @@ from statistics import median
 from typing import Dict
 import json
 
-import pandas as pd
 from sqlalchemy import and_, Column, DateTime, MetaData, text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import (
     BIGINT,
@@ -87,12 +86,12 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         )
 
     def init_row(
-        self, rule: Rule, results: pd.Series, conn: Connector, context: Dict = None
+        self, rule: Rule, results: list, conn: Connector, context: Dict = None
     ):
         """
-        Count metrics we want to measure using pd.Series api and set them to quality check object.
+        Count metrics we want to measure and set them to quality check object.
         """
-        if results.isnull().any():
+        if any(v is None for v in results):
             raise ValueError("In results of rule.apply can't be any Null values.")
 
         # todo - add to doc
@@ -102,9 +101,9 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         self.rule_type = rule.type
         self.rule_description = rule.description
 
-        self.total_records = results.shape[0]
-        self.failed = results[results == False].shape[0]
-        self.passed = results[results == True].shape[0]
+        self.total_records = len(results)
+        self.failed = results.count(False)
+        self.passed = self.total_records - self.failed
 
         self.set_medians(conn)
 
@@ -312,18 +311,18 @@ class CheckResult:
     context: Dict
 
     def init_row(
-        self, rule: Rule, results: pd.Series, conn: Connector, context: Dict = None
+        self, rule: Rule, results: list, conn: Connector, context: Dict = None
     ):
-        if results.isnull().any():
+        if any(v is None for v in results):
             raise ValueError("In results of rule.apply can't be any Null values.")
 
         self.rule_name = rule.name
         self.rule_type = rule.type
         self.rule_description = rule.description
 
-        self.total_records = results.shape[0]
-        self.failed = results[results == False].shape[0]
-        self.passed = results[results == True].shape[0]
+        self.total_records = len(results)
+        self.failed = results.count(False)
+        self.passed = self.total_records - self.failed
 
         if rule.time_filter:
             self.time_filter = str(rule.time_filter)
