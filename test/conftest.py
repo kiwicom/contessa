@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import pandas as pd
 import pytest
 
 from contessa.rules import NotNullRule
@@ -23,7 +22,7 @@ def rule():
 
 @pytest.fixture(scope="session")
 def results():
-    return pd.Series([True, True, False, False, True], name="src")
+    return [True, True, False, False, True]
 
 
 @pytest.fixture(scope="session")

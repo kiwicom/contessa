@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
 
-import pandas as pd
-
-from contessa.executor import PandasExecutor, SqlExecutor
+from contessa.executor import SqlExecutor
 from contessa.models import Table
 from contessa.rules import NotNullRule
 from contessa.time_filter import TimeFilter, TimeFilterColumn, TimeFilterConjunction

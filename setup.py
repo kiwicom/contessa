@@ -16,7 +16,6 @@ setup(
     install_requires=[
         "sqlalchemy>=1.2",
         "psycopg2>=2.7",
-        "pandas>=0.24.0",
         "jinja2>=2.10",
         "alembic>=0.8.10",
         "click>=7.0",
