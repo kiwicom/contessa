@@ -1,6 +1,5 @@
 import abc
 from typing import Union, List, Dict, Optional
-
 from contessa.time_filter import TimeFilter, parse_time_filter
 
 

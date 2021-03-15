@@ -21,10 +21,5 @@ def rule():
 
 
 @pytest.fixture(scope="session")
-def results():
-    return [True, True, False, False, True]
-
-
-@pytest.fixture(scope="session")
 def ctx():
     return {"task_ts": FakedDatetime.now(), "table_fullname": "public.tmp_table"}

@@ -1,7 +1,10 @@
 import datetime
 
+import pytest
+
 from contessa.db import Connector
 from contessa.models import TIME_FILTER_DEFAULT
+from contessa.utils import AggregatedResult
 from test.conftest import FakedDatetime
 
 from contessa.models import (
@@ -10,6 +13,11 @@ from contessa.models import (
     DQBase,
     QualityCheck,
 )
+
+
+@pytest.fixture(scope="module")
+def results():
+    return AggregatedResult(total_records=5, passed=3, failed=2,)
 
 
 def test_quality_check_init_row(rule, results, conn: Connector):

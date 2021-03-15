@@ -14,7 +14,7 @@ black:
 	docker run --rm -it -v $(curr_dir)/test:/tmp/test -v $(curr_dir)/contessa:/tmp/contessa kiwicom/black:19.10b0 black /tmp/test /tmp/contessa
 	
 bash:
-	docker run --rm -it -v $(curr_dir)/contessa:/app/ --entrypoint=/bin/sh contessa -c bash
+	docker run --rm -it -v $(curr_dir)/contessa:/app/contessa --entrypoint=/bin/sh contessa -c bash
 
 build-dist:
 	docker run --rm -v $(curr_dir):/app/ contessa python setup.py bdist_wheel
