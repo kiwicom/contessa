@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from statistics import median
-from typing import Dict
+from typing import Dict, Any
 import json
 
 from sqlalchemy import and_, Column, DateTime, MetaData, text, UniqueConstraint
@@ -19,6 +19,7 @@ from sqlalchemy.ext.declarative import (
 
 from contessa.base_rules import Rule
 from contessa.db import Connector
+from contessa.utils import AggregatedResult
 
 # default schema for results is `data_quality`, but it can be overridden by passing
 # ResultTable to runner. constructing concrete model for QualityCheck (that's abstract) will
@@ -86,13 +87,15 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         )
 
     def init_row(
-        self, rule: Rule, results: list, conn: Connector, context: Dict = None
+        self,
+        rule: Rule,
+        results: AggregatedResult,
+        conn: Connector,
+        context: Dict = None,
     ):
         """
         Count metrics we want to measure and set them to quality check object.
         """
-        if any(v is None for v in results):
-            raise ValueError("In results of rule.apply can't be any Null values.")
 
         # todo - add to doc
         self.task_ts = context["task_ts"]
@@ -101,9 +104,9 @@ class QualityCheck(AbstractConcreteBase, DQBase):
         self.rule_type = rule.type
         self.rule_description = rule.description
 
-        self.total_records = len(results)
-        self.failed = results.count(False)
-        self.passed = self.total_records - self.failed
+        self.total_records = results.total_records
+        self.failed = results.failed
+        self.passed = results.passed
 
         self.set_medians(conn)
 
@@ -204,7 +207,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
     def init_row(
         self,
         check: Dict,
-        status: str,
+        results: AggregatedResult,
         left_table_name: str,
         right_table_name: str,
         time_filter=None,
@@ -224,7 +227,7 @@ class ConsistencyCheck(AbstractConcreteBase, DQBase):
             self.time_filter = time_filter
         else:
             self.time_filter = json.dumps(time_filter)
-        self.status = status
+        self.status = "valid" if results.failed == 0 else "invalid"
 
     def __repr__(self):
         return f"Rule ({self.type} - {self.name} - {self.task_ts})"
@@ -308,21 +311,24 @@ class CheckResult:
     failed_percentage: float
     passed_percentage: float
     status: str
+    failed_example: Any
     context: Dict
 
     def init_row(
-        self, rule: Rule, results: list, conn: Connector, context: Dict = None
+        self,
+        rule: Rule,
+        results: AggregatedResult,
+        conn: Connector,
+        context: Dict = None,
     ):
-        if any(v is None for v in results):
-            raise ValueError("In results of rule.apply can't be any Null values.")
-
         self.rule_name = rule.name
         self.rule_type = rule.type
         self.rule_description = rule.description
 
-        self.total_records = len(results)
-        self.failed = results.count(False)
-        self.passed = self.total_records - self.failed
+        self.total_records = results.total_records
+        self.failed = results.failed
+        self.passed = results.passed
+        self.failed_example = results.failed_example
 
         if rule.time_filter:
             self.time_filter = str(rule.time_filter)
@@ -334,7 +340,7 @@ class CheckResult:
     def init_row_consistency(
         self,
         check: Dict,
-        status: str,
+        results: AggregatedResult,
         left_table_name,
         right_table_name,
         time_filter=None,
@@ -344,15 +350,16 @@ class CheckResult:
         self.rule_name = check["name"]
         self.rule_description = check["description"]
 
-        self.total_records = check["passed"] + abs(check["failed"])
-        self.passed = check["passed"]
-        self.failed = check["failed"]
+        self.total_records = results.total_records
+        self.failed = results.failed
+        self.passed = results.passed
+        self.failed_example = results.failed_example
 
         if time_filter:
             self.time_filter = time_filter
-        self.failed_percentage = self._perc(self.failed, self.total_records)
+        self.failed_percentage = self._perc(abs(self.failed), self.total_records)
         self.passed_percentage = self._perc(self.passed, self.total_records)
-        self.status = status
+        self.status = "valid" if results.failed == 0 else "invalid"
 
         context.update(
             {"left_table_name": left_table_name, "right_table_name": right_table_name}

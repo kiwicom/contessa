@@ -13,6 +13,7 @@ from contessa.rules import (
     LteRule,
     EqRule,
 )
+from contessa.utils import AggregatedResult
 
 
 @pytest.mark.parametrize(
@@ -20,17 +21,32 @@ from contessa.rules import (
     [
         (
             GtRule("gt_name", "gt", "value", "value2"),
-            [False, False, True, False, False],
+            AggregatedResult(total_records=5, failed=4, passed=1),
         ),  # test another col
         (
             NotNullRule("not_null_name", "not_null", "value"),
-            [True, True, True, False, True],
+            AggregatedResult(total_records=5, failed=1, passed=4),
         ),
-        (GteRule("gte_name", "gte", "value", 4), [False, True, True, False, True]),
-        (NotRule("not_name", "not", "value", 4), [True, False, True, True, False]),
-        (LtRule("lt_name", "lt", "value", 4), [True, False, False, False, False]),
-        (LteRule("lte_name", "lte", "value", 4), [True, True, False, False, True]),
-        (EqRule("eq_name", "eq", "value", 4), [False, True, False, False, True]),
+        (
+            GteRule("gte_name", "gte", "value", 4),
+            AggregatedResult(total_records=5, failed=2, passed=3),
+        ),
+        (
+            NotRule("not_name", "not", "value", 4),
+            AggregatedResult(total_records=5, failed=2, passed=3),
+        ),
+        (
+            LtRule("lt_name", "lt", "value", 4),
+            AggregatedResult(total_records=5, failed=4, passed=1),
+        ),
+        (
+            LteRule("lte_name", "lte", "value", 4),
+            AggregatedResult(total_records=5, failed=2, passed=3),
+        ),
+        (
+            EqRule("eq_name", "eq", "value", 4),
+            AggregatedResult(total_records=5, failed=3, passed=2),
+        ),
     ],
 )
 def test_one_column_rule_sql(rule, expected, conn, ctx):
@@ -52,7 +68,7 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    assert list(expected) == list(results)
+    assert (expected.failed, expected.passed) == (results.failed, results.passed)
 
 
 @pytest.mark.parametrize(
@@ -60,39 +76,39 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
     [
         (
             GtRule("gt_name", "gt", "value", 4, condition="conditional is TRUE"),
-            [False, False],
+            AggregatedResult(total_records=2, failed=2, passed=0),
         ),
         (
             NotNullRule(
                 "not_null_name", "not_null", "value", condition="conditional is TRUE"
             ),
-            [True, True],
+            AggregatedResult(total_records=2, failed=0, passed=2),
         ),
         (
             GteRule("gte_name", "gte", "value", 4, condition="conditional is TRUE"),
-            [False, True],
+            AggregatedResult(total_records=2, failed=1, passed=1),
         ),
         (
             NotRule("not_name", "not", "value", 4, condition="conditional is TRUE"),
-            [True, False],
+            AggregatedResult(total_records=2, failed=1, passed=1),
         ),
         (
             LtRule("lt_name", "lt", "value", 4, condition="conditional is TRUE"),
-            [True, False],
+            AggregatedResult(total_records=2, failed=1, passed=1),
         ),
         (
             LteRule("lte_name", "lte", "value", 4, condition="conditional is TRUE"),
-            [True, True],
+            AggregatedResult(total_records=2, failed=0, passed=2),
         ),
         (
             EqRule("eq_name", "eq", "value", 4, condition="conditional is TRUE"),
-            [False, True],
+            AggregatedResult(total_records=2, failed=1, passed=1),
         ),
         (
             LteRule(
                 "lte_name", "lte", "date", "now()", condition="conditional is FALSE"
             ),
-            [False, False, True],
+            AggregatedResult(total_records=3, failed=2, passed=1),
         ),
     ],
 )
@@ -116,16 +132,28 @@ def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    assert list(expected) == list(results)
+    assert (expected.failed, expected.passed) == (results.failed, results.passed)
 
 
 @pytest.mark.parametrize(
     "rule, expected",
     [
-        (NotRule("not_name", "not", "value1", "value2"), [True, False, False]),
-        (LteRule("lte_name", "lte", "value4", "value1"), [True, False, True]),
-        (EqRule("eq_name", "eq", "value1", "value3"), [True, True, True]),
-        (GtRule("gte_name", "gte", "value2", "value3"), [True, False, False]),
+        (
+            NotRule("not_name", "not", "value1", "value2"),
+            AggregatedResult(total_records=3, failed=2, passed=1),
+        ),
+        (
+            LteRule("lte_name", "lte", "value4", "value1"),
+            AggregatedResult(total_records=3, failed=1, passed=2),
+        ),
+        (
+            EqRule("eq_name", "eq", "value1", "value3"),
+            AggregatedResult(total_records=3, failed=0, passed=3),
+        ),
+        (
+            GtRule("gte_name", "gte", "value2", "value3"),
+            AggregatedResult(total_records=3, failed=2, passed=1),
+        ),
     ],
 )
 def test_cmp_with_other_col_rules(rule, expected, conn, ctx):
@@ -149,7 +177,7 @@ def test_cmp_with_other_col_rules(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    assert list(expected) == list(results)
+    assert (expected.failed, expected.passed) == (results.failed, results.passed)
 
 
 def test_sql_apply(conn, ctx):
@@ -177,8 +205,47 @@ def test_sql_apply(conn, ctx):
     """
     rule = CustomSqlRule("sql_test_name", "sql_test", "src", sql, "example description")
     results = rule.apply(conn)
-    expected = [False, True]
-    assert expected == results
+    assert results.total_records == 2
+    assert results.failed == 1
+    assert results.passed == 1
+    conn.execute("""DROP TABLE tmp_table;""")
+
+
+def test_sql_apply_only_failures(conn, ctx):
+    conn.execute(
+        """
+        drop table if exists public.tmp_table;
+
+        create table public.tmp_table(
+          src text,
+          dst text
+        );
+
+        insert into public.tmp_table(src, dst)
+        values ('bts', 'abc'), ('aaa', NULL)
+    """
+    )
+    refresh_executors(
+        Table(schema_name="public", table_name="tmp_table"), conn, context=ctx
+    )
+
+    sql = """
+        select src
+        from {{ table_fullname }}
+        where src != 'aaa'
+    """
+    rule = CustomSqlRule(
+        "sql_test_name",
+        "sql_test",
+        "src",
+        sql,
+        "example description",
+        only_failures_mode=True,
+    )
+    results = rule.apply(conn)
+    assert results.total_records == 0
+    assert results.failed == 1
+    assert results.passed == 0
     conn.execute("""DROP TABLE tmp_table;""")
 
 
@@ -210,8 +277,9 @@ def test_sql_apply_extra_ctx(conn, ctx):
         "sql_test_name", "sql_test", "col1", sql, "example description"
     )
     results = rule.apply(conn)
-    expected = [False, True]
-    assert expected == results
+    assert results.total_records == 2
+    assert results.failed == 1
+    assert results.passed == 1
     conn.execute("""DROP TABLE public.dst_table;""")
 
 
@@ -253,11 +321,11 @@ def test_new_rule(conn, ctx):
     )
     rule = CountSqlRule("count_name", "count", 2)
     results = rule.apply(conn)
-    expected = [True]
-    assert expected == results
+    expected = AggregatedResult(total_records=1, failed=0, passed=1)
+    assert (expected.failed, expected.passed) == (results.failed, results.passed)
 
     rule = CountSqlRule("count_name", "count", 2, condition="a = 'bts'")
     results = rule.apply(conn)
-    expected = [False]
-    assert expected == results
+    expected = AggregatedResult(total_records=1, failed=1, passed=0)
+    assert (expected.failed, expected.passed) == (results.failed, results.passed)
     conn.execute("""DROP TABLE tmp_table;""")

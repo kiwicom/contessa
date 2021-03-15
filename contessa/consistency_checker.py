@@ -18,6 +18,7 @@ from contessa.time_filter import (
     TimeFilterColumn,
     parse_time_filter,
 )
+from contessa.utils import failed_example_from_result_rows, AggregatedResult
 
 
 class ConsistencyChecker:
@@ -149,17 +150,11 @@ class ConsistencyChecker:
             )
         right_result = self.run_query(self.right_conn, right_sql, context)
 
-        valid, passed, failed = self.compare_results(left_result, right_result, method)
+        results = self.compare_results(left_result, right_result, method)
 
         return {
-            "check": {
-                "type": method,
-                "description": "",
-                "name": "consistency",
-                "passed": passed,
-                "failed": failed,
-            },
-            "status": "valid" if valid else "invalid",
+            "check": {"type": method, "description": "", "name": "consistency",},
+            "results": results,
             "left_table_name": left_check_table.fullname,
             "right_table_name": right_check_table.fullname,
             "time_filter": time_filter,
@@ -172,14 +167,28 @@ class ConsistencyChecker:
             right_count = right_result[0][0]
             passed = min(left_count, right_count)
             failed = (left_count - passed) - (right_count - passed)
-            return failed == 0, passed, failed
+            return AggregatedResult(
+                total_records=max(left_count, right_count),
+                failed=failed,
+                passed=passed,
+            )
+
         elif method == self.DIFF:
             left_set = set(left_result)
             right_set = set(right_result)
             common = left_set.intersection(right_set)
             passed = len(common)
             failed = (len(left_set) - len(common)) + (len(right_set) - len(common))
-            return failed == 0, passed, failed
+            failed_example = failed_example_from_result_rows(
+                left_set.symmetric_difference(right_set)
+            )
+            return AggregatedResult(
+                total_records=failed + passed,
+                failed=failed,
+                passed=passed,
+                failed_example=failed_example,
+            )
+
         else:
             raise NotImplementedError(f"Method {method} not implemented")
 

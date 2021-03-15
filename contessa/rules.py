@@ -1,10 +1,12 @@
 import logging
+from itertools import islice
 
 import jinja2
 
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, SqlExecutor
+from contessa.utils import failed_example_size, AggregatedResult
 
 
 class SqlRule(Rule):
@@ -14,6 +16,7 @@ class SqlRule(Rule):
     """
 
     executor_cls = SqlExecutor
+    only_failures_mode = False
 
     def get_sql_parameters(self):
         e = get_executor(self.__class__)
@@ -59,34 +62,60 @@ class SqlRule(Rule):
 
     def apply(self, conn: Connector):
         """
-        Execute a formatted sql. Check if it returns list of booleans that is needed
-        to do a quality check. If yes, return list of results.
-        :return: list
+        Execute a formatted sql. Check if it returns column full of booleans representing validity that is needed
+        to do a quality check. If yes, stream results and return aggregated results
+        :return: AggregatedResult
         """
         sql = self.sql_with_where
         logging.debug(sql)
-        results = [
-            r for r in conn.get_records(sql)
-        ]  # returns generator, so get it to memory
 
-        is_list_of_bool = all(
-            (len(r) == 1 and isinstance(r[0], (bool, type(None))) for r in results)
+        with conn.engine.connect() as con:
+            result = con.execution_options(stream_results=True).execute(sql)
+
+            failed = 0
+            passed = 0
+            failed_examples = set()
+
+            def add_example(row):
+                if len(failed_examples) < failed_example_size:
+                    if self.only_failures_mode:
+                        example = tuple(row.values())
+                    else:
+                        example = tuple(islice(row.values(), 1, None))
+                    failed_examples.add(example)
+
+            for row in result:
+                if self.only_failures_mode:
+                    failed += 1
+                    add_example(row)
+                else:
+                    if not isinstance(row[0], bool) and not row[0] is None:
+                        raise ValueError(
+                            f"Your query for rule `{self.name}` of type `{self.type}` does not return list of booleans in column `valid`."
+                        )
+                    if row[0]:
+                        passed += 1
+                    else:
+                        failed += 1
+                        add_example(row)
+
+        return AggregatedResult(
+            total_records=0 if self.only_failures_mode else failed + passed,
+            failed=failed,
+            passed=passed,
+            failed_example=list(failed_examples),
         )
-        if not is_list_of_bool:
-            raise ValueError(
-                f"Your query for rule `{self.name}` of type `{self.type}` does not return list of booleans or Nones."
-            )
-        return [bool(r[0]) for r in results]
 
 
 class OneColumnRuleSQL(SqlRule):
-    executor_cls = SqlExecutor
-
-    def __init__(self, name, type, column, description, **kwargs):
+    def __init__(
+        self, name, type, column, description, only_failures_mode=False, **kwargs
+    ):
         if description == "" or description is None:
             raise TypeError("Description is mandatory")
         super().__init__(name, type, description=description, **kwargs)
         self.column = column
+        self.only_failures_mode = only_failures_mode
 
     @property
     def attribute(self):
@@ -123,7 +152,10 @@ class NotNullRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return """
-            SELECT {{target_column}} IS NOT NULL FROM {{table_fullname}}
+            SELECT
+                {{target_column}} IS NOT NULL,
+                {{target_column}}
+            FROM {{table_fullname}}
         """
 
 
@@ -143,7 +175,10 @@ class GtRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return """
-            SELECT {{target_column}} > {{value}} FROM {{table_fullname}}
+            SELECT
+                {{target_column}} > {{value}},
+                {{target_column}}
+            FROM {{table_fullname}}
         """
 
 
@@ -163,7 +198,10 @@ class GteRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return """
-            SELECT {{target_column}} >= {{value}} FROM {{table_fullname}}
+            SELECT
+                {{target_column}} >= {{value}},
+                {{target_column}}
+            FROM {{table_fullname}}
         """
 
 
@@ -183,7 +221,9 @@ class NotRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return """
-            SELECT {{target_column}} is distinct from {{value}}
+            SELECT
+                {{target_column}} is distinct from {{value}},
+                {{target_column}}
             FROM {{table_fullname}}
         """
 
@@ -204,7 +244,10 @@ class LtRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return """
-            SELECT {{target_column}} < {{value}} FROM {{table_fullname}}
+            SELECT
+                {{target_column}} < {{value}},
+                {{target_column}}
+            FROM {{table_fullname}}
         """
 
 
@@ -224,7 +267,10 @@ class LteRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return """
-            SELECT {{target_column}} <= {{value}} FROM {{table_fullname}}
+            SELECT
+                {{target_column}} <= {{value}},
+                {{target_column}}
+            FROM {{table_fullname}}
         """
 
 
@@ -244,7 +290,10 @@ class EqRule(OneColumnRuleSQL):
     @property
     def sql(self):
         return """
-            SELECT {{target_column}} IS NOT DISTINCT FROM {{value}} FROM {{table_fullname}}
+            SELECT
+                {{target_column}} IS NOT DISTINCT FROM {{value}},
+                {{target_column}}
+            FROM {{table_fullname}}
         """
 
 

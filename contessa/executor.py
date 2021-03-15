@@ -47,7 +47,7 @@ class Executor(metaclass=abc.ABCMeta):
         Main entrypoint for Executor class. Composing kwargs specific for the executor
         (e.g. SqlExecutor) and get the results from rule.
         :param rule: Rule
-        :return: TODO
+        :return: AggregatedResult
         """
         kwargs = self.compose_kwargs(rule)
         results = rule.apply(**kwargs)
