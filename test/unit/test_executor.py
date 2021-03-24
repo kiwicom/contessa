@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from contessa.executor import SqlExecutor
+from contessa.failed_examples import default_example_selector
 from contessa.models import Table
 from contessa.rules import NotNullRule
 from contessa.time_filter import TimeFilter, TimeFilterColumn, TimeFilterConjunction
@@ -11,7 +12,10 @@ def test_compose_kwargs_sql_executor(dummy_contessa, ctx):
     e = SqlExecutor(t, dummy_contessa.conn, ctx)
     rule = NotNullRule("not_null_name", "not_null", "src", time_filter="created_at")
     kwargs = e.compose_kwargs(rule)
-    expected = {"conn": dummy_contessa.conn}
+    expected = {
+        "conn": dummy_contessa.conn,
+        "example_selector": default_example_selector,
+    }
     assert kwargs == expected
 
 

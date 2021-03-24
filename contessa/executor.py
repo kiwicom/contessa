@@ -1,9 +1,10 @@
-import abc
 from datetime import datetime, timedelta
+import abc
 import logging
 from typing import Dict
 
 from contessa.db import Connector
+from contessa.failed_examples import ExampleSelector, default_example_selector
 from contessa.models import Table
 
 
@@ -12,10 +13,17 @@ class Executor(metaclass=abc.ABCMeta):
     Class that execute a rule and gives a proper kwargs to the `Rule.apply()` method.
     """
 
-    def __init__(self, check_table: Table, conn: Connector, context: Dict):
+    def __init__(
+        self,
+        check_table: Table,
+        conn: Connector,
+        context: Dict,
+        example_selector: ExampleSelector = default_example_selector,
+    ):
         self.conn = conn
         self.check_table = check_table
         self.context = context
+        self.example_selector = example_selector
 
     def compose_where_time_filter(self, rule):
         """
@@ -57,16 +65,25 @@ class Executor(metaclass=abc.ABCMeta):
     def compose_kwargs(self, rule):
         raise NotImplementedError
 
+
 class SqlExecutor(Executor):
     def compose_kwargs(self, rule):
-        return {"conn": self.conn}
+        return {
+            "conn": self.conn,
+            "example_selector": self.example_selector,
+        }
 
 
 # singleton of executors
 executors = None
 
 
-def refresh_executors(check_table: Table, conn: Connector, context: Dict):
+def refresh_executors(
+    check_table: Table,
+    conn: Connector,
+    context: Dict,
+    example_selector: ExampleSelector = default_example_selector,
+):
     """
     Use this to re-init the executor classes that are used to execute rules. To have right
     data from new table in Executor class.
@@ -77,7 +94,7 @@ def refresh_executors(check_table: Table, conn: Connector, context: Dict):
     """
     global executors
     executors = {
-        SqlExecutor: SqlExecutor(check_table, conn, context),
+        SqlExecutor: SqlExecutor(check_table, conn, context, example_selector),
     }
     logging.info("Successfully initialized SqlExecutor.")
 

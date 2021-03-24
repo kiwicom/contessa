@@ -6,6 +6,7 @@ from datetime import datetime
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, refresh_executors
+from contessa.failed_examples import ExampleSelector, default_example_selector
 from contessa.models import (
     create_default_check_class,
     Table,
@@ -35,12 +36,13 @@ class ContessaRunner:
             Dict
         ] = None,  # todo - docs for quality name, maybe defaults..
         context: Optional[Dict] = None,
+        example_selector: ExampleSelector = default_example_selector,
     ) -> Union[CheckResult, QualityCheck]:
         check_table = Table(**check_table)
         context = self.get_context(check_table, context)
 
         normalized_rules = self.normalize_rules(raw_rules)
-        refresh_executors(check_table, self.conn, context)
+        refresh_executors(check_table, self.conn, context, example_selector)
 
         if result_table:
             result_table = ResultTable(**result_table, model_cls=self.model_cls)

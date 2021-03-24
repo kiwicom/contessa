@@ -5,6 +5,7 @@ import jinja2
 from datetime import datetime
 
 from contessa.db import Connector
+from contessa.failed_examples import default_example_selector, ExampleSelector
 from contessa.models import (
     create_default_check_class,
     Table,
@@ -18,7 +19,7 @@ from contessa.time_filter import (
     TimeFilterColumn,
     parse_time_filter,
 )
-from contessa.utils import failed_example_from_result_rows, AggregatedResult
+from contessa.utils import AggregatedResult
 
 
 class ConsistencyChecker:
@@ -52,6 +53,7 @@ class ConsistencyChecker:
         left_custom_sql: str = None,
         right_custom_sql: str = None,
         context: Optional[Dict] = None,
+        example_selector: ExampleSelector = default_example_selector,
     ) -> Union[CheckResult, ConsistencyCheck]:
         if left_custom_sql and right_custom_sql:
             if columns or time_filter:
@@ -74,6 +76,7 @@ class ConsistencyChecker:
             left_custom_sql,
             right_custom_sql,
             context,
+            example_selector,
         )
 
         if result_table:
@@ -115,6 +118,7 @@ class ConsistencyChecker:
         left_sql: str = None,
         right_sql: str = None,
         context: Dict = None,
+        example_selector: ExampleSelector = default_example_selector,
     ):
         """
         Run quality check for all rules. Use `qc_cls` to construct objects that will be inserted
@@ -150,7 +154,9 @@ class ConsistencyChecker:
             )
         right_result = self.run_query(self.right_conn, right_sql, context)
 
-        results = self.compare_results(left_result, right_result, method)
+        results = self.compare_results(
+            left_result, right_result, method, example_selector
+        )
 
         return {
             "check": {"type": method, "description": "", "name": "consistency",},
@@ -161,7 +167,7 @@ class ConsistencyChecker:
             "context": context,
         }
 
-    def compare_results(self, left_result, right_result, method):
+    def compare_results(self, left_result, right_result, method, example_selector):
         if method == self.COUNT:
             left_count = left_result[0][0]
             right_count = right_result[0][0]
@@ -179,14 +185,14 @@ class ConsistencyChecker:
             common = left_set.intersection(right_set)
             passed = len(common)
             failed = (len(left_set) - len(common)) + (len(right_set) - len(common))
-            failed_example = failed_example_from_result_rows(
+            failed_examples = example_selector.select_examples(
                 left_set.symmetric_difference(right_set)
             )
             return AggregatedResult(
                 total_records=failed + passed,
                 failed=failed,
                 passed=passed,
-                failed_example=failed_example,
+                failed_example=list(failed_examples),
             )
 
         else:
