@@ -6,7 +6,8 @@ import jinja2
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, SqlExecutor
-from contessa.utils import failed_example_size, AggregatedResult
+from contessa.failed_examples import ExampleSelector, default_example_selector
+from contessa.utils import AggregatedResult
 
 
 class SqlRule(Rule):
@@ -60,7 +61,11 @@ class SqlRule(Rule):
         final_sql = f"{self.sql} {where_clause}"
         return self.render_sql(final_sql)
 
-    def apply(self, conn: Connector):
+    def apply(
+        self,
+        conn: Connector,
+        example_selector: ExampleSelector = default_example_selector,
+    ):
         """
         Execute a formatted sql. Check if it returns column full of booleans representing validity that is needed
         to do a quality check. If yes, stream results and return aggregated results
@@ -69,25 +74,16 @@ class SqlRule(Rule):
         sql = self.sql_with_where
         logging.debug(sql)
 
+        failed = 0
+        passed = 0
+        failed_rows = set()
+
         with conn.engine.connect() as con:
             result = con.execution_options(stream_results=True).execute(sql)
-
-            failed = 0
-            passed = 0
-            failed_examples = set()
-
-            def add_example(row):
-                if len(failed_examples) < failed_example_size:
-                    if self.only_failures_mode:
-                        example = tuple(row.values())
-                    else:
-                        example = tuple(islice(row.values(), 1, None))
-                    failed_examples.add(example)
-
             for row in result:
                 if self.only_failures_mode:
                     failed += 1
-                    add_example(row)
+                    failed_rows.add(tuple(row))
                 else:
                     if not isinstance(row[0], bool) and not row[0] is None:
                         raise ValueError(
@@ -97,7 +93,9 @@ class SqlRule(Rule):
                         passed += 1
                     else:
                         failed += 1
-                        add_example(row)
+                        failed_rows.add(tuple(islice(row.values(), 1, None)))
+
+        failed_examples = example_selector.select_examples(failed_rows)
 
         return AggregatedResult(
             total_records=0 if self.only_failures_mode else failed + passed,
