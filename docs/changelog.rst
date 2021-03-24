@@ -1,6 +1,13 @@
 Contessa Changelog
 ============================================
 
+2021-03-24; 0.2.9;
+--------------------------------------------
+
+- Remove PandasExecutor and usage of pandas
+- Add capturing of failed examples and selection of relevant examples
+- Add "failures only mode" for custom sql rule
+
 2021-03-11; 0.2.8;
 --------------------------------------------
 
