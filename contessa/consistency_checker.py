@@ -228,7 +228,7 @@ class ConsistencyChecker:
     def run_query(self, conn: Connector, query: str, context):
         query = self.render_sql(query, context)
         logging.info(query)
-        result = [r._row for r in conn.get_records(query)]
+        result = [tuple(r.values()) for r in conn.get_records(query)]
         return result
 
     def upsert(self, dc_cls, result):
