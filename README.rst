@@ -54,7 +54,7 @@ Quick Example
         SELECT CASE WHEN is_no_bags_booking = 'T' AND bags > 0 THEN false ELSE true END
         FROM {{table_fullname}};
     """
-    contessa = ContessaRunner("postgres://:@localhost:5432")
+    contessa = ContessaRunner("postgresql://:@localhost:5432")
 
     RULES = [
         {
