@@ -106,7 +106,7 @@ Let's look on the ContessaRunner then!
 .. code-block:: python
 
 	from contessa import ContessaRunner
-	contessa = ContessaRunner("postgres://:@localhost:5432")
+	contessa = ContessaRunner("postgresql://:@localhost:5432")
 	contessa.run(
         raw_rules=RULES,
         check_table={"schema_name": "public", "table_name": "bookings"},
