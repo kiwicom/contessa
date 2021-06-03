@@ -21,7 +21,7 @@ from contessa.utils import AggregatedResult
     [
         (
             GtRule("gt_name", "gt", "value", "value2"),
-            AggregatedResult(total_records=5, failed=4, passed=1),
+            AggregatedResult(total_records=5, failed=3, passed=1),
         ),  # test another col
         (
             NotNullRule("not_null_name", "not_null", "value"),
@@ -29,7 +29,7 @@ from contessa.utils import AggregatedResult
         ),
         (
             GteRule("gte_name", "gte", "value", 4),
-            AggregatedResult(total_records=5, failed=2, passed=3),
+            AggregatedResult(total_records=5, failed=1, passed=3),
         ),
         (
             NotRule("not_name", "not", "value", 4),
@@ -37,11 +37,11 @@ from contessa.utils import AggregatedResult
         ),
         (
             LtRule("lt_name", "lt", "value", 4),
-            AggregatedResult(total_records=5, failed=4, passed=1),
+            AggregatedResult(total_records=5, failed=3, passed=1),
         ),
         (
             LteRule("lte_name", "lte", "value", 4),
-            AggregatedResult(total_records=5, failed=2, passed=3),
+            AggregatedResult(total_records=5, failed=1, passed=3),
         ),
         (
             EqRule("eq_name", "eq", "value", 4),
@@ -68,7 +68,11 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    assert (expected.failed, expected.passed) == (results.failed, results.passed)
+    assert (expected.total_records, expected.failed, expected.passed) == (
+        results.total_records,
+        results.failed,
+        results.passed,
+    )
 
 
 @pytest.mark.parametrize(
@@ -108,7 +112,7 @@ def test_one_column_rule_sql(rule, expected, conn, ctx):
             LteRule(
                 "lte_name", "lte", "date", "now()", condition="conditional is FALSE"
             ),
-            AggregatedResult(total_records=3, failed=2, passed=1),
+            AggregatedResult(total_records=3, failed=0, passed=1),
         ),
     ],
 )
@@ -132,7 +136,11 @@ def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    assert (expected.failed, expected.passed) == (results.failed, results.passed)
+    assert (expected.total_records, expected.failed, expected.passed) == (
+        results.total_records,
+        results.failed,
+        results.passed,
+    )
 
 
 @pytest.mark.parametrize(
@@ -144,7 +152,7 @@ def test_one_column_rule_sql_condition(rule, expected, conn, ctx):
         ),
         (
             LteRule("lte_name", "lte", "value4", "value1"),
-            AggregatedResult(total_records=3, failed=1, passed=2),
+            AggregatedResult(total_records=3, failed=0, passed=2),
         ),
         (
             EqRule("eq_name", "eq", "value1", "value3"),
@@ -177,7 +185,11 @@ def test_cmp_with_other_col_rules(rule, expected, conn, ctx):
     )
 
     results = rule.apply(conn)
-    assert (expected.failed, expected.passed) == (results.failed, results.passed)
+    assert (expected.total_records, expected.failed, expected.passed) == (
+        results.total_records,
+        results.failed,
+        results.passed,
+    )
 
 
 def test_sql_apply(conn, ctx):

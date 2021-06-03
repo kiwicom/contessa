@@ -76,8 +76,7 @@ class SqlRule(Rule):
         sql = self.sql_with_where
         logging.debug(sql)
 
-        failed = 0
-        passed = 0
+        failed = passed = total = 0
         failed_rows = set()
 
         with conn.engine.connect() as con:
@@ -91,16 +90,17 @@ class SqlRule(Rule):
                         raise ValueError(
                             f"Your query for rule `{self.name}` of type `{self.type}` does not return list of booleans in column `valid`."
                         )
-                    if row[0]:
+                    total += 1
+                    if row[0] is True:
                         passed += 1
-                    else:
+                    if row[0] is False:
                         failed += 1
                         failed_rows.add(tuple(islice(row.values(), 1, None)))
 
         failed_examples = example_selector.select_examples(failed_rows)
 
         return AggregatedResult(
-            total_records=0 if self.only_failures_mode else failed + passed,
+            total_records=0 if self.only_failures_mode else total,
             failed=failed,
             passed=passed,
             failed_example=list(failed_examples),
