@@ -200,3 +200,33 @@ class TestConsistencyChecker(unittest.TestCase):
         )
 
         self.assertEqual(rows.fetchone()["status"], "valid")
+
+    @mock.patch("contessa.executor.datetime", FakedDatetime)
+    def test_execute_consistency_sqls(self):
+        result = self.consistency_checker.run(
+            self.consistency_checker.DIFF,
+            left_check_table={"schema_name": "tmp", "table_name": self.left_table_name},
+            right_check_table={
+                "schema_name": "hello",
+                "table_name": self.right_table_name,
+            },
+            left_custom_sql="SELECT 16349;",
+            right_custom_sql="SELECT 16349;",
+            context={"task_ts": self.now},
+        )
+
+        self.assertEqual("valid", result.status)
+
+        result = self.consistency_checker.run(
+            self.consistency_checker.DIFF,
+            left_check_table={"schema_name": "tmp", "table_name": self.left_table_name},
+            right_check_table={
+                "schema_name": "hello",
+                "table_name": self.right_table_name,
+            },
+            left_custom_sql="SELECT 42;",
+            right_custom_sql="SELECT 16349;",
+            context={"task_ts": self.now},
+        )
+
+        self.assertEqual("invalid", result.status)
