@@ -1,6 +1,12 @@
 Contessa Changelog
 ============================================
 
+2021-06-03; 0.2.11;
+--------------------------------------------
+
+- Fix unintentional parameters in SQL queries
+- Fix counting NULL values as failed
+
 2021-04-12; 0.2.10;
 --------------------------------------------
 
