@@ -37,7 +37,7 @@ class ContessaRunner:
         ] = None,  # todo - docs for quality name, maybe defaults..
         context: Optional[Dict] = None,
         example_selector: ExampleSelector = default_example_selector,
-    ) -> Union[CheckResult, QualityCheck]:
+    ) -> List[Union[CheckResult, QualityCheck]]:
         check_table = Table(**check_table)
         context = self.get_context(check_table, context)
 

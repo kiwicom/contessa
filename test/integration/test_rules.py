@@ -329,3 +329,40 @@ def test_new_rule(conn, ctx):
     expected = AggregatedResult(total_records=1, failed=1, passed=0)
     assert (expected.failed, expected.passed) == (results.failed, results.passed)
     conn.execute("""DROP TABLE tmp_table;""")
+
+
+def test_sql_standard_formatting(conn, ctx):
+    ctx["dst_table"] = "public.dst_table"
+    conn.execute(
+        """
+        drop table if exists public.dst_table;
+
+        create table public.dst_table(
+          src text,
+          dst text,
+          created timestamptz
+        );
+
+        insert into public.dst_table(src, dst, created)
+        values ('bts', 'abc', '2018-09-12T12:00:00'), ('aaa', NULL, '2018-09-12T12:00:00'), ('aaa', NULL, '2019-07-31T12:00:00')
+    """
+    )
+    refresh_executors(Table("public", "dst_table"), conn, context=ctx)
+
+    sql = """
+        select dst
+        from {{ dst_table }}
+        where dst LIKE 'a%'
+    """
+    rule = CustomSqlRule(
+        "sql_test_name",
+        "sql_test",
+        None,
+        sql,
+        "example description",
+        only_failures_mode=True,
+    )
+    results = rule.apply(conn)
+    assert results.total_records == 0  # unknown because of only_failures_mode
+    assert results.failed == 1
+    assert results.passed == 0

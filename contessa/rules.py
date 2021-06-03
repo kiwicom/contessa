@@ -1,4 +1,5 @@
 import logging
+import re
 from itertools import islice
 
 import jinja2
@@ -39,6 +40,7 @@ class SqlRule(Rule):
         t = jinja2.Template(sql)
         ctx = self.get_sql_parameters()
         rendered = t.render(**ctx)
+        rendered = re.sub(r"%", "%%", rendered)
         return rendered
 
     @property
