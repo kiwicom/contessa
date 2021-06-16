@@ -1,7 +1,7 @@
 import logging
+import re
 from typing import Dict, Optional, List, Union
 
-import jinja2
 from datetime import datetime
 
 from contessa.db import Connector
@@ -19,7 +19,7 @@ from contessa.time_filter import (
     TimeFilterColumn,
     parse_time_filter,
 )
-from contessa.utils import AggregatedResult
+from contessa.utils import AggregatedResult, render_jinja_sql
 
 
 class ConsistencyChecker:
@@ -221,8 +221,7 @@ class ConsistencyChecker:
         Replace some parameters in query.
         :return str, formatted sql
         """
-        t = jinja2.Template(sql)
-        rendered = t.render(**context)
+        rendered = render_jinja_sql(sql, context)
         return rendered
 
     def run_query(self, conn: Connector, query: str, context):
