@@ -1,14 +1,11 @@
 import logging
-import re
 from itertools import islice
-
-import jinja2
 
 from contessa.base_rules import Rule
 from contessa.db import Connector
 from contessa.executor import get_executor, SqlExecutor
 from contessa.failed_examples import ExampleSelector, default_example_selector
-from contessa.utils import AggregatedResult
+from contessa.utils import AggregatedResult, render_jinja_sql
 
 
 class SqlRule(Rule):
@@ -37,10 +34,8 @@ class SqlRule(Rule):
         Replace some parameters in query.
         :return str, formatted sql
         """
-        t = jinja2.Template(sql)
         ctx = self.get_sql_parameters()
-        rendered = t.render(**ctx)
-        rendered = re.sub(r"%", "%%", rendered)
+        rendered = render_jinja_sql(sql, ctx)
         return rendered
 
     @property

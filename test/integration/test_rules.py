@@ -1,3 +1,4 @@
+import jinja2
 import pytest
 
 from contessa.executor import refresh_executors, SqlExecutor
@@ -378,3 +379,25 @@ def test_sql_standard_formatting(conn, ctx):
     assert results.total_records == 0  # unknown because of only_failures_mode
     assert results.failed == 1
     assert results.passed == 0
+
+
+def test_sql_missing_jinja_param(conn, ctx):
+    ctx["dst_table"] = "public.dst_table"
+    refresh_executors(Table("public", "dst_table"), conn, context=ctx)
+
+    sql = """
+        select dst
+        from {{ dst_table }}
+        where dst LIKE '{{ missing_pattern }}'
+    """
+    rule = CustomSqlRule(
+        "sql_test_name",
+        "sql_test",
+        None,
+        sql,
+        "example description",
+        only_failures_mode=True,
+    )
+
+    with pytest.raises(jinja2.exceptions.UndefinedError):
+        rule.apply(conn)
